@@ -803,6 +803,8 @@ def send_alert(message, via="email", recipient=None):
             print(f"❌ Teams sending failed: {e}")
             
 # --- Main Tabs ---
+tabs = st.tabs(["🗃️ All", "🚩 Escalated", "🔁 Feedback & Retraining"])
+
 import datetime
 import time
 import pandas as pd
