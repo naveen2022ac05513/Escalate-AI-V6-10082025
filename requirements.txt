@@ -15,4 +15,10 @@ transformers>=4.30.0
 streamlit-sortables
 xlsxwriter
 schedule
-
+plotly>=5.15.0              # 📊 Interactive charts (analytics, feature importance)
+seaborn>=0.12.2             # 🔥 SLA heatmap visualization
+matplotlib>=3.7.1           # 🔥 SLA heatmap rendering
+rapidfuzz>=2.13.7           # 🧪 Fuzzy deduplication
+pdfkit>=1.0.0               # 📄 PDF report generation
+PyPDF2>=3.0.1               # Optional: PDF manipulation if needed
+streamlit-authenticator>=0.2.2  # 🔐 Role-based access control
