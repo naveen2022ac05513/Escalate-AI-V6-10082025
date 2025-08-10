@@ -891,7 +891,7 @@ with tabs[0]:
                             with colA:
                                 st.markdown(f"""
                                     <div style='background-color:{ageing_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                                    ⏱️ Ageing: {ageing_str}
+                                     Age: {ageing_str}
                                     </div>
                                 """, unsafe_allow_html=True)
 
