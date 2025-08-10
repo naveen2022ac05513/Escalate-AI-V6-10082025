@@ -710,23 +710,23 @@ if not breaches.empty:
         unsafe_allow_html=True
     )
 
-def get_filter_values():
-    status = st.sidebar.selectbox("Status", [...])
-    severity = st.sidebar.selectbox("Severity", [...])
-    sentiment = st.sidebar.selectbox("Sentiment", [...])
-    category = st.sidebar.selectbox("Category", [...])
-    return status, severity, sentiment, category
+#def get_filter_values():
+#    status = st.sidebar.selectbox("Status", [...])
+#    severity = st.sidebar.selectbox("Severity", [...])
+#    sentiment = st.sidebar.selectbox("Sentiment", [...])
+#    category = st.sidebar.selectbox("Category", [...])
+#    return status, severity, sentiment, category
 
-status, severity, sentiment, category = get_filter_values()
-show_filter_summary(status, severity, sentiment, category)
+#status, severity, sentiment, category = get_filter_values()
+#show_filter_summary(status, severity, sentiment, category)
 
 # 🔍 Filters
-#st.sidebar.markdown("### 🔍 Escalation Filters")
-#df = fetch_escalations()
-#status = st.sidebar.selectbox("Status", [...])
-#severity = st.sidebar.selectbox("Severity", [...])
-#sentiment = st.sidebar.selectbox("Sentiment", [...])
-#category = st.sidebar.selectbox("Category", [...])
+st.sidebar.markdown("### 🔍 Escalation Filters")
+df = fetch_escalations()
+status = st.sidebar.selectbox("Status", [...])
+severity = st.sidebar.selectbox("Severity", [...])
+sentiment = st.sidebar.selectbox("Sentiment", [...])
+category = st.sidebar.selectbox("Category", [...])
 #show_filter_summary(status, severity, sentiment, category)
 view = st.sidebar.radio("Escalation View", ["All", "Escalated", "Non-Escalated"])
 
