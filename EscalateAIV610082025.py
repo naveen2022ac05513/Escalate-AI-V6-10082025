@@ -961,6 +961,89 @@ if 'email_thread' not in st.session_state:
     email_thread.start()
     st.session_state['email_thread'] = email_thread
 
+# ------------------------------
+# --- DAILY EMAIL ---
+# ------------------------------
+
+import schedule
+import threading
+import time as time_module
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+
+# --- Daily Escalation Email Function ---
+def send_daily_escalation_email():
+    df = fetch_escalations()
+    df_esc = df[df["escalated"] == "Yes"]
+
+    if df_esc.empty:
+        print("✅ No escalated cases to report.")
+        return
+
+    # Save to Excel
+    file_path = "daily_escalated_cases.xlsx"
+    df_esc.to_excel(file_path, index=False)
+
+    # Summary
+    summary = f"""
+🔔 Daily Escalation Summary – {datetime.datetime.now().strftime('%Y-%m-%d')}
+
+Total Escalated Cases: {len(df_esc)}
+Open: {df_esc[df_esc['status'] == 'Open'].shape[0]}
+In Progress: {df_esc[df_esc['status'] == 'In Progress'].shape[0]}
+Resolved: {df_esc[df_esc['status'] == 'Resolved'].shape[0]}
+
+Please find the attached Excel file for full details.
+"""
+
+    try:
+        msg = MIMEMultipart()
+        msg['Subject'] = "📊 Daily Escalated Cases Report"
+        msg['From'] = EMAIL_USER
+        msg['To'] = ALERT_RECIPIENT
+        msg.attach(MIMEText(summary, 'plain'))
+
+        # Attach Excel
+        with open(file_path, "rb") as f:
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(f.read())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', f'attachment; filename="{file_path}"')
+            msg.attach(part)
+
+        with smtplib.SMTP(EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_USER, EMAIL_PASS)
+            server.send_message(msg)
+
+        print("✅ Daily escalation email sent.")
+    except Exception as e:
+        print(f"❌ Failed to send daily email: {e}")
+
+# --- Scheduler Setup ---
+def schedule_daily_email():
+    schedule.every().day.at("09:00").do(send_daily_escalation_email)
+
+    def run_scheduler():
+        while True:
+            schedule.run_pending()
+            time_module.sleep(60)
+
+    thread = threading.Thread(target=run_scheduler, daemon=True)
+    thread.start()
+
+# --- Trigger Scheduler Once ---
+if 'daily_email_thread' not in st.session_state:
+    schedule_daily_email()
+    st.session_state['daily_email_thread'] = True
+
+# --- Sidebar Button for Manual Trigger ---
+st.sidebar.markdown("### 📧 Daily Escalation Email")
+if st.sidebar.button("Send Daily Email Now"):
+    send_daily_escalation_email()
+    st.sidebar.success("✅ Daily escalation email sent.")
 
 # -----------------------
 # --- DEV OPTIONS -------
