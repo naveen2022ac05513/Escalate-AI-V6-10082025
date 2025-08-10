@@ -879,11 +879,7 @@ with tabs[0]:
                             ⏱️ {ageing_str}
                             </div>
                         """, unsafe_allow_html=True)
-
-                        st.markdown(f"**📝 Issue:** {row['issue']}")
-                        st.markdown(f"**📛 Severity:** <span style='color:{header_color};font-weight:bold;'>{row['severity']}</span>", unsafe_allow_html=True)
-                        st.markdown(f"**⚡ Urgency:** <span style='color:{urgency_color};font-weight:bold;'>{row['urgency']}</span>", unsafe_allow_html=True)
-
+                            
                         if not compact_mode:
                             colA, colB, colC = st.columns(3)
 
@@ -899,6 +895,9 @@ with tabs[0]:
                                 send_alert("Case escalated to N+1.", via="email", recipient=n1_email)
                                 send_alert("Case escalated to N+1.", via="teams", recipient=n1_email)
 
+                        st.markdown(f"**📝 Issue:** {row['issue']}")
+                        st.markdown(f"**📛 Severity:** <span style='color:{header_color};font-weight:bold;'>{row['severity']}</span>", unsafe_allow_html=True)
+                        st.markdown(f"**⚡ Urgency:** <span style='color:{urgency_color};font-weight:bold;'>{row['urgency']}</span>", unsafe_allow_html=True)
                             st.markdown(f"**🎯 Criticality:** {row['criticality']}")
                             st.markdown(f"**📂 Category:** {row['category']}")
                             st.markdown(f"**💬 Sentiment:** {row['sentiment']}")
