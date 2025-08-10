@@ -136,7 +136,7 @@ def summarize_escalations():
     df = fetch_escalations()
     total = len(df)
     escalated = df[df['escalated'] == 'Yes'].shape[0]
-    return f"🔎 Summary: {total} total cases, {escalated} escalated."
+    return f"🔎 Summary: 📌Total cases: {total},🚨 Escalated: {escalated}."
 
 # 🔁 Local copy of fetch_escalations
 def fetch_escalations():
