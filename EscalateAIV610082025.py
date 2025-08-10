@@ -879,13 +879,15 @@ with tabs[0]:
                     with st.expander(f"📂 {expander_label}", expanded=False):
 
                         if not compact_mode:
-                            colA, colB = st.columns([1, 3])
+                            colA, colB, colC, colD = st.columns([1, 2, 2, 1])
+
                             with colA:
                                 if st.button("✔️ Mark as Resolved", key=f"{prefix}_resolved"):
                                     owner_email = row.get("owner_email", EMAIL_USER)
                                     update_escalation_status(row['id'], "Resolved", row.get("action_taken", ""), row.get("owner", ""), owner_email)
                                     send_alert("Case marked as resolved.", via="email", recipient=owner_email)
                                     send_alert("Case marked as resolved.", via="teams", recipient=owner_email)
+
                             with colB:
                                 st.markdown(f"""
                                     <div style='background-color:{ageing_color};padding:6px;border-radius:5px;color:white;text-align:center'>
@@ -893,9 +895,9 @@ with tabs[0]:
                                     </div>
                                 """, unsafe_allow_html=True)
 
-                            colC, colD = st.columns(2)
                             with colC:
                                 n1_email = st.text_input("N+1 Email", key=f"{prefix}_n1email")
+
                             with colD:
                                 if st.button("🚀 Escalate to N+1", key=f"{prefix}_n1btn"):
                                     update_escalation_status(row['id'], "Escalated", row.get("action_taken", ""), row.get("owner", ""), n1_email)
@@ -905,49 +907,49 @@ with tabs[0]:
                         # Metadata in 2 rows × 3 columns
                         row1_col1, row1_col2, row1_col3 = st.columns(3)
                         with row1_col1:
-                            st.markdown("📛 Severity")
+                            st.markdown("**📛 Severity**")
                             st.markdown(f"""
                                 <div style='background-color:{header_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                                {row['severity']}
+                                {row['severity'].capitalize()}
                                 </div>
                             """, unsafe_allow_html=True)
                         with row1_col2:
-                            st.markdown("⚡ Urgency")
+                            st.markdown("**⚡ Urgency**")
                             st.markdown(f"""
                                 <div style='background-color:{urgency_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                                {row['urgency']}
+                                {row['urgency'].capitalize()}
                                 </div>
                             """, unsafe_allow_html=True)
                         with row1_col3:
-                            st.markdown("🎯 Criticality")
+                            st.markdown("**🎯 Criticality**")
                             st.markdown(f"""
                                 <div style='background-color:#8e44ad;padding:6px;border-radius:5px;color:white;text-align:center'>
-                                {row['criticality']}
+                                {row['criticality'].capitalize()}
                                 </div>
                             """, unsafe_allow_html=True)
 
                         row2_col1, row2_col2, row2_col3 = st.columns(3)
                         with row2_col1:
-                            st.markdown("📂 Category")
+                            st.markdown("**📂 Category**")
                             st.markdown(f"""
                                 <div style='background-color:#16a085;padding:6px;border-radius:5px;color:white;text-align:center'>
-                                {row['category']}
+                                {row['category'].capitalize()}
                                 </div>
                             """, unsafe_allow_html=True)
                         with row2_col2:
-                            st.markdown("💬 Sentiment")
+                            st.markdown("**💬 Sentiment**")
                             sentiment_color = "#e74c3c" if row['sentiment'] == "Negative" else "#2ecc71" if row['sentiment'] == "Positive" else "#f39c12"
                             st.markdown(f"""
                                 <div style='background-color:{sentiment_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                                {row['sentiment']}
+                                {row['sentiment'].capitalize()}
                                 </div>
                             """, unsafe_allow_html=True)
                         with row2_col3:
-                            st.markdown("📈 Escalated")
+                            st.markdown("**📈 Escalated**")
                             escalated_color = "#c0392b" if row['escalated'] == "Yes" else "#7f8c8d"
                             st.markdown(f"""
                                 <div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                                {row['escalated']}
+                                {row['escalated'].capitalize()}
                                 </div>
                             """, unsafe_allow_html=True)
 
@@ -989,6 +991,8 @@ with tabs[0]:
 
                 except Exception as e:
                     st.error(f"Error rendering case #{row['id']}: {e}")
+                    
+
 # --- Escalated issues tab ---
 with tabs[1]:
     st.subheader("🚩 Escalated Issues")
