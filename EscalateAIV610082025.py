@@ -1041,7 +1041,7 @@ if 'daily_email_thread' not in st.session_state:
 
 # --- Sidebar Button for Manual Trigger ---
 st.sidebar.markdown("### 📧 Daily Escalation Email")
-if st.sidebar.button("Send Daily Email Now"):
+if st.sidebar.button("Send Daily Email"):
     send_daily_escalation_email()
     st.sidebar.success("✅ Daily escalation email sent.")
 
