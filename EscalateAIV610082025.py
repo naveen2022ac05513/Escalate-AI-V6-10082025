@@ -100,7 +100,7 @@ def ensure_schema():
     hash_exists = 'hash' in columns
 
     if not hash_exists:
-    cursor.execute("ALTER TABLE escalations ADD COLUMN hash TEXT")
+        cursor.execute("ALTER TABLE escalations ADD COLUMN hash TEXT")
 
     # Check if index exists
     cursor.execute("""
