@@ -625,10 +625,21 @@ with tabs[0]:
     resolved_count = counts.get('Resolved', 0)
     st.markdown(f"**Open:** {open_count} | **In Progress:** {inprogress_count} | **Resolved:** {resolved_count}")
 
+       # Map status to colors
+    status_colors = {
+        "Open": "#e74c3c",         # Red
+        "In Progress": "#f39c12",  # Orange
+        "Resolved": "#2ecc71"      # Green
+    }
+    
     col1, col2, col3 = st.columns(3)
     for status_name, col in zip(["Open", "In Progress", "Resolved"], [col1, col2, col3]):
         with col:
-            col.markdown(f"<h3 style='background-color:#FFA500;color:white;padding:8px;border-radius:5px;text-align:center;'>{status_name}</h3>", unsafe_allow_html=True)
+            header_color = status_colors.get(status_name, "#FFA500")  # fallback to orange
+            col.markdown(
+                f"<h3 style='background-color:{header_color};color:white;padding:8px;border-radius:5px;text-align:center;'>{status_name}</h3>",
+                unsafe_allow_html=True
+            )
             bucket = df[df["status"] == status_name] if not df.empty else pd.DataFrame()
             for i, row in bucket.iterrows():
                 flag = "🚩" if row.get('escalated','') == 'Yes' else ""
