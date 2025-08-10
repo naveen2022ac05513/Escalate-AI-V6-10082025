@@ -48,6 +48,8 @@ def is_duplicate(issue_text, threshold=90):
             return True
     return False
 
+# PDF Generator
+
 from xhtml2pdf import pisa
 import pandas as pd
 
