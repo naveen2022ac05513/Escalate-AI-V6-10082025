@@ -97,7 +97,7 @@ def ensure_schema():
     """Check if a given hash already exists in the escalations table."""
     
     def hash_exists(h):
-    """Check if a given hash already exists in the escalations table."""
+        """Check if a given hash already exists in the escalations table."""
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT 1 FROM escalations WHERE hash = ? LIMIT 1", (h,))
