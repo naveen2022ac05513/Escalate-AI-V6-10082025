@@ -984,29 +984,41 @@ import smtplib
 
 def send_daily_escalation_summary():
     """
-    Sends a daily summary email of escalated cases with Excel attachment.
+    Sends a daily summary email of escalated cases with stats and Excel attachment.
     """
     df = fetch_escalations()
     df = df[df["escalated"] == "Yes"]
+    today = datetime.datetime.now().date()
 
     if df.empty:
-        message = "✅ No escalated cases today."
+        message = f"✅ No escalated cases on {today}."
         excel_bytes = None
     else:
-        summary_lines = [f"🆔 {row['id']} | {row['customer']} | {row['category']} | {row['severity']} | {row['status']}" 
-                         for _, row in df.iterrows()]
-        message = f"🚨 Daily Escalation Summary ({datetime.datetime.now().date()}):\n\n" + "\n".join(summary_lines)
+        # 📊 Summary Stats
+        severity_counts = df["severity"].value_counts().to_dict()
+        category_counts = df["category"].value_counts().to_dict()
 
-        # Generate Excel file in memory
+        stats_text = f"📊 Summary Stats for {today}:\n\n"
+        stats_text += "🔴 Severity Breakdown:\n" + "\n".join([f"• {k}: {v}" for k, v in severity_counts.items()])
+        stats_text += "\n\n📂 Category Breakdown:\n" + "\n".join([f"• {k}: {v}" for k, v in category_counts.items()])
+
+        # 📝 Case List
+        case_lines = [f"{row['id']} | {row['customer']} | {row['category']} | {row['severity']} | {row['status']}" 
+                      for _, row in df.iterrows()]
+        case_text = "\n\n🗂️ Escalated Cases:\n" + "\n".join(case_lines)
+
+        message = f"🚨 Daily Escalation Summary\n\n{stats_text}\n{case_text}"
+
+        # 📎 Excel Attachment
         excel_buffer = BytesIO()
         with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
             df.to_excel(writer, index=False, sheet_name="Escalated Cases")
         excel_bytes = excel_buffer.getvalue()
 
-    # Compose email with attachment
+    # 📤 Send Email
     try:
         msg = EmailMessage()
-        msg['Subject'] = f"🚨 Daily Escalation Summary – {datetime.datetime.now().date()}"
+        msg['Subject'] = f"🚨 Daily Escalation Summary – {today}"
         msg['From'] = EMAIL_USER
         msg['To'] = ALERT_RECIPIENT
         msg.set_content(message)
@@ -1014,7 +1026,7 @@ def send_daily_escalation_summary():
         if excel_bytes:
             msg.add_attachment(excel_bytes, maintype='application',
                                subtype='vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                               filename=f"Escalated_Cases_{datetime.datetime.now().date()}.xlsx")
+                               filename=f"Escalated_Cases_{today}.xlsx")
 
         with smtplib.SMTP(EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT) as server:
             server.starttls()
@@ -1023,6 +1035,11 @@ def send_daily_escalation_summary():
             print("✅ Daily escalation email sent with attachment.")
     except Exception as e:
         print(f"❌ Failed to send daily escalation email: {e}")
+
+    st.sidebar.markdown("### 📅 Daily Summary Email")
+    if st.sidebar.button("📨 Send Daily Escalation Email"):
+        send_daily_escalation_summary()
+        st.sidebar.success("✅ Daily escalation email sent.")
 
 # -----------------------
 # --- NOTES -------------
