@@ -1153,5 +1153,32 @@ if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
 # - ML model is RandomForest; can be replaced or enhanced as needed
 # - Background email polling fetches every 60 seconds automatically
 # - Excel export fixed with context manager, no deprecated save()
+# 🌙 Dark Mode
+if st.sidebar.toggle("🌙 Dark Mode"):
+    apply_dark_mode()
 
+# 📌 Sticky Filter Summary
+show_filter_summary(status_filter, severity_filter, sentiment_filter, category_filter)
+
+# 📄 PDF Report
+if st.sidebar.button("📄 Generate PDF Report"):
+    generate_pdf_report()
+    st.sidebar.success("PDF report generated as report.pdf")
+
+# 🧠 AI Summary
+st.sidebar.markdown(summarize_escalations())
+
+# 📈 Analytics
+render_analytics()
+
+# 🔥 SLA Heatmap
+render_sla_heatmap()
+
+# 🧠 Feature Importance (optional)
+model = train_model()
+if model:
+    show_feature_importance(model)
+
+# 🔄 Schedule Retraining
+schedule_weekly_retraining()
 
