@@ -880,12 +880,54 @@ for status, col in zip(["Open", "In Progress", "Resolved"], [col1, col2, col3]):
 
 
                 st.markdown(f"**Issue:** {row['issue']}")
-                st.markdown(f"**Severity:** <span style='color:{header_color};font-weight:bold;'>{row['severity']}</span>", unsafe_allow_html=True)
-                st.markdown(f"**Criticality:** {row['criticality']}")
-                st.markdown(f"**Category:** {row['category']}")
-                st.markdown(f"**Sentiment:** {row['sentiment']}")
-                st.markdown(f"**Urgency:** <span style='color:{urgency_color};font-weight:bold;'>{row['urgency']}</span>", unsafe_allow_html=True)
-                st.markdown(f"**Escalated:** {row['escalated']}")
+                               # 🔹 Compact Metadata Display in Columns with Color Bars
+                col_meta1, col_meta2, col_meta3 = st.columns(3)
+                
+                with col_meta1:
+                    st.markdown(f"""
+                    <div style='background-color:{header_color};padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
+                    <strong>Severity:</strong> {row['severity']}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                    st.markdown(f"""
+                    <div style='background-color:{urgency_color};padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
+                    <strong>Urgency:</strong> {row['urgency']}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col_meta2:
+                    st.markdown(f"""
+                    <div style='background-color:#3498db;padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
+                    <strong>Criticality:</strong> {row['criticality']}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                    st.markdown(f"""
+                    <div style='background-color:#9b59b6;padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
+                    <strong>Category:</strong> {row['category']}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col_meta3:
+                    sentiment_color = {
+                        "positive": "#2ecc71",
+                        "neutral": "#f1c40f",
+                        "negative": "#e74c3c"
+                    }.get(row['sentiment'], "#7f8c8d")
+                
+                    st.markdown(f"""
+                    <div style='background-color:{sentiment_color};padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
+                    <strong>Sentiment:</strong> {row['sentiment']}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                    esc_color = "#e74c3c" if row['escalated'] == "Yes" else "#2ecc71"
+                    st.markdown(f"""
+                    <div style='background-color:{esc_color};padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
+                    <strong>Escalated:</strong> {row['escalated']}
+                    </div>
+                    """, unsafe_allow_html=True)
 
                 new_status = st.selectbox("Update Status", ["Open", "In Progress", "Resolved"],
                                           index=["Open", "In Progress", "Resolved"].index(row["status"]),
