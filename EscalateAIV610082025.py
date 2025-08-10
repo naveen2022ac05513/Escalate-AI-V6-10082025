@@ -769,11 +769,11 @@ if st.sidebar.button("📤 Send Daily Report Now"):
     send_daily_escalation_report()
 
 # End notes preserved
-st.markdown("---")
-st.markdown("**Notes & next steps:**")
-st.markdown("""
-- Ensure your .env contains the required credentials: EMAIL_USER, EMAIL_PASS, EMAIL_SERVER, EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT, EMAIL_RECEIVER, MS_TEAMS_WEBHOOK_URL (optional).
-- For WhatsApp sending, set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM (format 'whatsapp:+1234...').
-- For persistent email dedupe across restarts, add a DB table for processed hashes.
-- Run with: `streamlit run escalate_ai.py`
-""")
+#st.markdown("---")
+#st.markdown("**Notes & next steps:**")
+#st.markdown("""
+#- Ensure your .env contains the required credentials: EMAIL_USER, EMAIL_PASS, EMAIL_SERVER, EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT, EMAIL_RECEIVER, MS_TEAMS_WEBHOOK_URL (optional).
+#- For WhatsApp sending, set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM (format 'whatsapp:+1234...').
+#- For persistent email dedupe across restarts, add a DB table for processed hashes.
+#- Run with: `streamlit run escalate_ai.py`
+#""")
