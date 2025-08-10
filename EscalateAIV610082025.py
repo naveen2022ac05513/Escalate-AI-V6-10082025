@@ -978,6 +978,52 @@ if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
     conn.close()
     st.sidebar.warning("Database reset. Please restart the app.")
 
+from io import BytesIO
+from email.message import EmailMessage
+import smtplib
+
+def send_daily_escalation_summary():
+    """
+    Sends a daily summary email of escalated cases with Excel attachment.
+    """
+    df = fetch_escalations()
+    df = df[df["escalated"] == "Yes"]
+
+    if df.empty:
+        message = "✅ No escalated cases today."
+        excel_bytes = None
+    else:
+        summary_lines = [f"🆔 {row['id']} | {row['customer']} | {row['category']} | {row['severity']} | {row['status']}" 
+                         for _, row in df.iterrows()]
+        message = f"🚨 Daily Escalation Summary ({datetime.datetime.now().date()}):\n\n" + "\n".join(summary_lines)
+
+        # Generate Excel file in memory
+        excel_buffer = BytesIO()
+        with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name="Escalated Cases")
+        excel_bytes = excel_buffer.getvalue()
+
+    # Compose email with attachment
+    try:
+        msg = EmailMessage()
+        msg['Subject'] = f"🚨 Daily Escalation Summary – {datetime.datetime.now().date()}"
+        msg['From'] = EMAIL_USER
+        msg['To'] = ALERT_RECIPIENT
+        msg.set_content(message)
+
+        if excel_bytes:
+            msg.add_attachment(excel_bytes, maintype='application',
+                               subtype='vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                               filename=f"Escalated_Cases_{datetime.datetime.now().date()}.xlsx")
+
+        with smtplib.SMTP(EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_USER, EMAIL_PASS)
+            server.send_message(msg)
+            print("✅ Daily escalation email sent with attachment.")
+    except Exception as e:
+        print(f"❌ Failed to send daily escalation email: {e}")
+
 # -----------------------
 # --- NOTES -------------
 # -----------------------
@@ -987,5 +1033,6 @@ if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
 # - ML model is RandomForest; can be replaced or enhanced as needed
 # - Background email polling fetches every 60 seconds automatically
 # - Excel export fixed with context manager, no deprecated save()
+
 
 
