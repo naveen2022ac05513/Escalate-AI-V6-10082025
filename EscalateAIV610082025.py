@@ -898,10 +898,10 @@ with tabs[0]:
                         st.markdown(f"**📝 Issue:** {row['issue']}")
                         st.markdown(f"**📛 Severity:** <span style='color:{header_color};font-weight:bold;'>{row['severity']}</span>", unsafe_allow_html=True)
                         st.markdown(f"**⚡ Urgency:** <span style='color:{urgency_color};font-weight:bold;'>{row['urgency']}</span>", unsafe_allow_html=True)
-                            st.markdown(f"**🎯 Criticality:** {row['criticality']}")
-                            st.markdown(f"**📂 Category:** {row['category']}")
-                            st.markdown(f"**💬 Sentiment:** {row['sentiment']}")
-                            st.markdown(f"**📈 Escalated:** {row['escalated']}")
+                        st.markdown(f"**🎯 Criticality:** {row['criticality']}")
+                        st.markdown(f"**📂 Category:** {row['category']}")
+                        st.markdown(f"**💬 Sentiment:** {row['sentiment']}")
+                        st.markdown(f"**📈 Escalated:** {row['escalated']}")
 
                             new_status = st.selectbox("Update Status", ["Open", "In Progress", "Resolved"],
                                                       index=["Open", "In Progress", "Resolved"].index(row["status"]),
