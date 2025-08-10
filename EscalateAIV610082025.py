@@ -961,23 +961,6 @@ if 'email_thread' not in st.session_state:
     email_thread.start()
     st.session_state['email_thread'] = email_thread
 
-
-# -----------------------
-# --- DEV OPTIONS -------
-# -----------------------
-
-if st.sidebar.checkbox("🧪 View Raw Database"):
-    df = fetch_escalations()
-    st.sidebar.dataframe(df)
-
-if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("DROP TABLE IF EXISTS escalations")
-    conn.commit()
-    conn.close()
-    st.sidebar.warning("Database reset. Please restart the app.")
-
 from io import BytesIO
 from email.message import EmailMessage
 import smtplib
@@ -1043,6 +1026,24 @@ def send_daily_escalation_summary():
     if st.sidebar.button("📨 Send Daily Escalation Email"):
        send_daily_escalation_summary()
        st.sidebar.success("✅ Daily escalation email sent.")
+
+# -----------------------
+# --- DEV OPTIONS -------
+# -----------------------
+
+if st.sidebar.checkbox("🧪 View Raw Database"):
+    df = fetch_escalations()
+    st.sidebar.dataframe(df)
+
+if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DROP TABLE IF EXISTS escalations")
+    conn.commit()
+    conn.close()
+    st.sidebar.warning("Database reset. Please restart the app.")
+
+
 
 # -----------------------
 # --- NOTES -------------
