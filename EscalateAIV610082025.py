@@ -839,9 +839,9 @@ refresh_interval = st.sidebar.slider("Refresh Interval (sec)", 10, 60, 30)
 compact_mode = st.sidebar.checkbox("📱 Compact Mode", value=False)
 if auto_refresh:
     time.sleep(refresh_interval)
-    st.experimental_rerun()
+    st.rerun()
 if st.sidebar.button("🔁 Manual Refresh"):
-    st.experimental_rerun()
+   st.rerun()
 
 # Kanban board tab
 with tabs[0]:
