@@ -21,6 +21,11 @@ from sklearn.model_selection import train_test_split
 import threading
 from dotenv import load_dotenv
 
+from escalateai_enhancements import (
+    extract_tags, show_feature_importance, train_model,
+    escalation_trend_chart, generate_pdf_report,
+    enable_dark_mode, sticky_filter_summary
+)
 # Load environment variables from .env file (for credentials & config)
 load_dotenv()
 
@@ -1136,6 +1141,18 @@ if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
     conn.commit()
     conn.close()
     st.sidebar.warning("Database reset. Please restart the app.")
+
+if st.sidebar.checkbox("🌙 Dark Mode"):
+    enable_dark_mode(st)
+
+sticky_filter_summary(st, status, severity, sentiment, category)
+
+model = train_model(fetch_escalations())
+if model:
+    show_feature_importance(model, st)
+
+escalation_trend_chart(fetch_escalations(), st)
+generate_pdf_report(fetch_escalations(), st)
 
 # -----------------------
 # --- NOTES -------------
