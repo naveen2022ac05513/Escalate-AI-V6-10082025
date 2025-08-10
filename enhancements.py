@@ -11,9 +11,11 @@ import streamlit as st
 import pdfkit
 import seaborn as sns
 import matplotlib.pyplot as plt
+import sqlite3
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
 
-# Import your existing functions
-from EscalateAIV610082025 import fetch_escalations, train_model
+DB_PATH = "escalations.db"
 
 # 🔄 Auto-Retraining Scheduler
 def schedule_weekly_retraining():
@@ -99,3 +101,31 @@ def summarize_escalations():
     total = len(df)
     escalated = df[df['escalated'] == 'Yes'].shape[0]
     return f"🔎 Summary: {total} total cases, {escalated} escalated."
+
+# 🔁 Local copy of fetch_escalations
+def fetch_escalations():
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        df = pd.read_sql("SELECT * FROM escalations", conn)
+    except Exception:
+        df = pd.DataFrame()
+    finally:
+        conn.close()
+    return df
+
+# 🔁 Local copy of train_model
+def train_model():
+    df = fetch_escalations()
+    if df.shape[0] < 20:
+        return None
+    df = df.dropna(subset=['sentiment', 'urgency', 'severity', 'criticality', 'escalated'])
+    if df.empty:
+        return None
+    X = pd.get_dummies(df[['sentiment', 'urgency', 'severity', 'criticality']])
+    y = df['escalated'].apply(lambda x: 1 if x == 'Yes' else 0)
+    if y.nunique() < 2:
+        return None
+    X_train, _, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=42)
+    model = RandomForestClassifier(random_state=42)
+    model.fit(X_train, y_train)
+    return model
