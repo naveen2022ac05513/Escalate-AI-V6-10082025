@@ -903,7 +903,7 @@ with tabs[0]:
                         st.markdown(f"**💬 Sentiment:** {row['sentiment']}")
                         st.markdown(f"**📈 Escalated:** {row['escalated']}")
 
-                            new_status = st.selectbox("Update Status", ["Open", "In Progress", "Resolved"],
+                        new_status = st.selectbox("Update Status", ["Open", "In Progress", "Resolved"],
                                                       index=["Open", "In Progress", "Resolved"].index(row["status"]),
                                                       key=f"{prefix}_status")
                             new_action = st.text_input("Action Taken", row.get("action_taken", ""), key=f"{prefix}_action")
