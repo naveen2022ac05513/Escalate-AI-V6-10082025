@@ -517,6 +517,27 @@ def colored_text(text, color):
     """
     return f'<span style="color:{color};font-weight:bold;">{text}</span>'
 
+def render_status_bar(severity, criticality, urgency, sentiment):
+    colors = {
+        "severity": SEVERITY_COLORS.get(severity, "#7f8c8d"),
+        "criticality": {
+            "high": "#e74c3c", "medium": "#f39c12", "low": "#2ecc71", "urgent": "#8e44ad"
+        }.get(criticality.lower(), "#7f8c8d"),
+        "urgency": URGENCY_COLORS.get(urgency, "#7f8c8d"),
+        "sentiment": {
+            "negative": "#c0392b", "neutral": "#95a5a6", "positive": "#27ae60"
+        }.get(sentiment.lower(), "#7f8c8d")
+    }
+
+    bar_html = f"""
+    <div style='display:flex; height:12px; border-radius:4px; overflow:hidden; margin-bottom:6px;'>
+        <div style='flex:1; background:{colors["severity"]}' title='Severity'></div>
+        <div style='flex:1; background:{colors["criticality"]}' title='Criticality'></div>
+        <div style='flex:1; background:{colors["urgency"]}' title='Urgency'></div>
+        <div style='flex:1; background:{colors["sentiment"]}' title='Sentiment'></div>
+    </div>
+    """
+    return bar_html
 
 # -------------------
 # --- STREAMLIT UI ---
@@ -542,6 +563,23 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+status_bar = render_status_bar(
+    row['severity'],
+    row['criticality'],
+    row['urgency'],
+    row['sentiment']
+)
+st.markdown(status_bar, unsafe_allow_html=True)
+
+st.markdown(f"""
+**🧠 Attributes:**
+- Severity: `{row['severity']}`
+- Criticality: `{row['criticality']}`
+- Urgency: `{row['urgency']}`
+- Sentiment: `{row['sentiment']}`
+- Category: `{row['category']}`
+- Escalated: `{row['escalated']}`
+""")
 
 import streamlit as st
 import datetime
