@@ -713,10 +713,7 @@ if not breaches.empty:
 # 🔍 Filters
 st.sidebar.markdown("### 🔍 Escalation Filters")
 df = fetch_escalations()
-status = st.sidebar.selectbox("Status", ["All", "Open", "In Progress", "Resolved"])
-severity = st.sidebar.selectbox("Severity", ["All"] + sorted(df["severity"].dropna().unique()))
-sentiment = st.sidebar.selectbox("Sentiment", ["All"] + sorted(df["sentiment"].dropna().unique()))
-category = st.sidebar.selectbox("Category", ["All"] + sorted(df["category"].dropna().unique()))
+show_filter_summary(status, severity, sentiment, category)
 view = st.sidebar.radio("Escalation View", ["All", "Escalated", "Non-Escalated"])
 
 filtered_df = df.copy()
