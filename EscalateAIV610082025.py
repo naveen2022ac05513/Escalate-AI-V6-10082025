@@ -829,67 +829,67 @@ for status, col in zip(["Open", "In Progress", "Resolved"], [col1, col2, col3]):
             summary = summarize_issue_text(row['issue'])
             expander_label = f"{row['id']} - {row['customer']} {flag} – {summary}"
 
-           with st.expander(expander_label, expanded=False):
-                # Color-coded header bar
-                st.markdown(
-                    f"""
-                    <div style='background-color:{header_color};padding:6px;border-radius:5px;color:white;font-weight:bold;text-align:center;'>
-                    🆔 {row['id']} | 👤 {row['customer']} | ⏱️ {ageing_str}
-                    </div>
-                    """, unsafe_allow_html=True
-                )
-            
-                # Compact metadata layout
-                meta_cols = st.columns([1, 1, 1])
-                meta_cols[0].markdown(f"**Severity:** <span style='color:{header_color};'>{row['severity']}</span>", unsafe_allow_html=True)
-                meta_cols[1].markdown(f"**Urgency:** <span style='color:{urgency_color};'>{row['urgency']}</span>", unsafe_allow_html=True)
-                meta_cols[2].markdown(f"**Sentiment:** <span style='color:#34495e;'>{row['sentiment'].capitalize()}</span>", unsafe_allow_html=True)
-            
-                meta_cols2 = st.columns([1, 1, 1])
-                meta_cols2[0].markdown(f"**Category:** <span style='color:#2c3e50;'>{row['category'].capitalize()}</span>", unsafe_allow_html=True)
-                meta_cols2[1].markdown(f"**Criticality:** <span style='color:#8e44ad;'>{row['criticality'].capitalize()}</span>", unsafe_allow_html=True)
-                meta_cols2[2].markdown(f"**Escalated:** <span style='color:#e74c3c;'>{row['escalated']}</span>", unsafe_allow_html=True)
-            
-                # Issue summary
-                st.markdown(f"<div style='font-size:13px;color:#2c3e50;padding:4px 0;'>{row['issue']}</div>", unsafe_allow_html=True)
-            
-                # Action buttons
-                btn_cols = st.columns([1, 1, 1])
-                if btn_cols[0].button("✔️ Resolve", key=f"resolved_{row['id']}"):
-                    update_escalation_status(row['id'], "Resolved", row.get("action_taken", ""), row.get("owner", ""), row.get("owner_email", EMAIL_USER))
-                    send_alert("Case marked as resolved.", via="email", recipient=row.get("owner_email", EMAIL_USER))
-                    send_alert("Case marked as resolved.", via="teams", recipient=row.get("owner_email", EMAIL_USER))
-            
-                n1_email = btn_cols[1].text_input("N+1 Email", key=f"n1email_{row['id']}")
-                if btn_cols[2].button("🚀 Escalate", key=f"n1btn_{row['id']}"):
-                    update_escalation_status(row['id'], "Escalated", row.get("action_taken", ""), row.get("owner", ""), n1_email)
-                    send_alert("Case escalated to N+1.", via="email", recipient=n1_email)
-                    send_alert("Case escalated to N+1.", via="teams", recipient=n1_email)
-            
-                # Editable fields
-                with st.form(key=f"form_{row['id']}"):
-                    new_status = st.selectbox("Status", ["Open", "In Progress", "Resolved"], index=["Open", "In Progress", "Resolved"].index(row["status"]))
-                    new_action = st.text_input("Action Taken", row.get("action_taken", ""))
-                    new_owner = st.text_input("Owner", row.get("owner", ""))
-                    new_owner_email = st.text_input("Owner Email", row.get("owner_email", ""))
-                    submitted = st.form_submit_button("💾 Save")
-                    if submitted:
-                        update_escalation_status(row['id'], new_status, new_action, new_owner, new_owner_email)
-                        st.success("✅ Escalation updated.")
-                        notification_message = f"""
-            🔔 Hello {new_owner},
-            The escalation case #{row['id']} assigned to you has been updated:
-            • Status: {new_status}
-            • Action Taken: {new_action}
-            • Category: {row['category']}
-            • Severity: {row['severity']}
-            • Urgency: {row['urgency']}
-            • Sentiment: {row['sentiment']}
-            Please review the updates on the EscalateAI dashboard.
-            """
-                        send_alert(notification_message.strip(), via="email", recipient=new_owner_email)
-                        send_alert(notification_message.strip(), via="teams", recipient=new_owner_email)
-                
+    with st.expander(expander_label, expanded=False):
+        # Color-coded header bar
+        st.markdown(
+            f"""
+            <div style='background-color:{header_color};padding:6px;border-radius:5px;color:white;font-weight:bold;text-align:center;'>
+            🆔 {row['id']} | 👤 {row['customer']} | ⏱️ {ageing_str}
+            </div>
+            """, unsafe_allow_html=True
+        )
+    
+        # Compact metadata layout
+        meta_cols = st.columns([1, 1, 1])
+        meta_cols[0].markdown(f"**Severity:** <span style='color:{header_color};'>{row['severity']}</span>", unsafe_allow_html=True)
+        meta_cols[1].markdown(f"**Urgency:** <span style='color:{urgency_color};'>{row['urgency']}</span>", unsafe_allow_html=True)
+        meta_cols[2].markdown(f"**Sentiment:** <span style='color:#34495e;'>{row['sentiment'].capitalize()}</span>", unsafe_allow_html=True)
+    
+        meta_cols2 = st.columns([1, 1, 1])
+        meta_cols2[0].markdown(f"**Category:** <span style='color:#2c3e50;'>{row['category'].capitalize()}</span>", unsafe_allow_html=True)
+        meta_cols2[1].markdown(f"**Criticality:** <span style='color:#8e44ad;'>{row['criticality'].capitalize()}</span>", unsafe_allow_html=True)
+        meta_cols2[2].markdown(f"**Escalated:** <span style='color:#e74c3c;'>{row['escalated']}</span>", unsafe_allow_html=True)
+    
+        # Issue summary
+        st.markdown(f"<div style='font-size:13px;color:#2c3e50;padding:4px 0;'>{row['issue']}</div>", unsafe_allow_html=True)
+    
+        # Action buttons
+        btn_cols = st.columns([1, 1, 1])
+        if btn_cols[0].button("✔️ Resolve", key=f"resolved_{row['id']}"):
+            update_escalation_status(row['id'], "Resolved", row.get("action_taken", ""), row.get("owner", ""), row.get("owner_email", EMAIL_USER))
+            send_alert("Case marked as resolved.", via="email", recipient=row.get("owner_email", EMAIL_USER))
+            send_alert("Case marked as resolved.", via="teams", recipient=row.get("owner_email", EMAIL_USER))
+    
+        n1_email = btn_cols[1].text_input("N+1 Email", key=f"n1email_{row['id']}")
+        if btn_cols[2].button("🚀 Escalate", key=f"n1btn_{row['id']}"):
+            update_escalation_status(row['id'], "Escalated", row.get("action_taken", ""), row.get("owner", ""), n1_email)
+            send_alert("Case escalated to N+1.", via="email", recipient=n1_email)
+            send_alert("Case escalated to N+1.", via="teams", recipient=n1_email)
+    
+        # Editable fields
+        with st.form(key=f"form_{row['id']}"):
+            new_status = st.selectbox("Status", ["Open", "In Progress", "Resolved"], index=["Open", "In Progress", "Resolved"].index(row["status"]))
+            new_action = st.text_input("Action Taken", row.get("action_taken", ""))
+            new_owner = st.text_input("Owner", row.get("owner", ""))
+            new_owner_email = st.text_input("Owner Email", row.get("owner_email", ""))
+            submitted = st.form_submit_button("💾 Save")
+            if submitted:
+                update_escalation_status(row['id'], new_status, new_action, new_owner, new_owner_email)
+                st.success("✅ Escalation updated.")
+                notification_message = f"""
+    🔔 Hello {new_owner},
+    The escalation case #{row['id']} assigned to you has been updated:
+    • Status: {new_status}
+    • Action Taken: {new_action}
+    • Category: {row['category']}
+    • Severity: {row['severity']}
+    • Urgency: {row['urgency']}
+    • Sentiment: {row['sentiment']}
+    Please review the updates on the EscalateAI dashboard.
+    """
+                send_alert(notification_message.strip(), via="email", recipient=new_owner_email)
+                send_alert(notification_message.strip(), via="teams", recipient=new_owner_email)
+
 # --- Escalated issues tab ---
 with tabs[1]:
     st.subheader("🚩 Escalated Issues")
