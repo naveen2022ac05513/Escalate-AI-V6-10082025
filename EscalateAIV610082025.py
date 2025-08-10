@@ -21,7 +21,7 @@ from sklearn.model_selection import train_test_split
 import threading
 from dotenv import load_dotenv
 
-from EscalateAIV610082025 Enhancements import (
+from escalateai_enhancements import (
     extract_tags, show_feature_importance, train_model,
     escalation_trend_chart, generate_pdf_report,
     enable_dark_mode, sticky_filter_summary
