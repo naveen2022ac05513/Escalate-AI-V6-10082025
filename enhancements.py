@@ -48,11 +48,45 @@ def is_duplicate(issue_text, threshold=90):
             return True
     return False
 
-# 📄 PDF Report Generation
+from xhtml2pdf import pisa
+import pandas as pd
+
 def generate_pdf_report():
     df = fetch_escalations()
-    html = df.to_html(index=False)
-    pdfkit.from_string(html, "report.pdf")
+    html = f"""
+    <html>
+    <head>
+        <style>
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+            }}
+            th, td {{
+                border: 1px solid #ccc;
+                padding: 8px;
+                text-align: left;
+            }}
+            th {{
+                background-color: #f2f2f2;
+            }}
+            h2 {{
+                text-align: center;
+                color: #2c3e50;
+            }}
+        </style>
+    </head>
+    <body>
+        <h2>📄 Escalation Report</h2>
+        {df.to_html(index=False)}
+    </body>
+    </html>
+    """
+    try:
+        with open("report.pdf", "wb") as f:
+            pisa.CreatePDF(html, dest=f)
+        print("✅ PDF report generated successfully.")
+    except Exception as e:
+        print(f"❌ PDF generation failed: {e}")
 
 # 🔥 SLA Heatmap Visualization
 def render_sla_heatmap():
