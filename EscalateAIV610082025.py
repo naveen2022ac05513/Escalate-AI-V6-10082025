@@ -1181,8 +1181,8 @@ if st.sidebar.button("📄 Generate PDF Report"):
 # 🧠 AI Summary
 st.sidebar.markdown("### 📊 AI Summary")
 st.sidebar.markdown(summarize_escalations())
-- 📌 Total cases: 2  
-- 🚨 Escalated: 2"
+#- 📌 Total cases: 2  
+#- 🚨 Escalated: 2"
 
 # 🔄 Schedule Retraining
 schedule_weekly_retraining()
