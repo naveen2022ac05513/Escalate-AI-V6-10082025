@@ -13,7 +13,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # Import your existing functions
-from escalate_ai import fetch_escalations, train_model
+from EscalateAIV610082025 import fetch_escalations, train_model
 
 # 🔄 Auto-Retraining Scheduler
 def schedule_weekly_retraining():
