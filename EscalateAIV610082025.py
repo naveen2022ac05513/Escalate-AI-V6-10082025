@@ -21,6 +21,18 @@ from sklearn.model_selection import train_test_split
 import threading
 from dotenv import load_dotenv
 
+from enhancements import (
+    schedule_weekly_retraining,
+    render_analytics,
+    show_feature_importance,
+    is_duplicate,
+    generate_pdf_report,
+    render_sla_heatmap,
+    apply_dark_mode,
+    show_filter_summary,
+    get_escalation_template,
+    summarize_escalations
+)
 # Load environment variables from .env file (for credentials & config)
 load_dotenv()
 
