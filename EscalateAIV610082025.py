@@ -100,9 +100,7 @@ def ensure_schema():
         cursor = conn.cursor()
         cursor.execute("SELECT 1 FROM escalations WHERE hash = ? LIMIT 1", (h,))
         exists = cursor.fetchone() is not None
-        conn.close()
-    return exists
-    
+        
     # Check if 'hash' column exists
     cursor.execute("PRAGMA table_info(escalations)")
     columns = [row[1] for row in cursor.fetchall()]
