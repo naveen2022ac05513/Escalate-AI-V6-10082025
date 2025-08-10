@@ -723,10 +723,10 @@ if not breaches.empty:
 # 🔍 Filters
 st.sidebar.markdown("### 🔍 Escalation Filters")
 df = fetch_escalations()
-status = st.sidebar.selectbox("Status", [...])
-severity = st.sidebar.selectbox("Severity", [...])
-sentiment = st.sidebar.selectbox("Sentiment", [...])
-category = st.sidebar.selectbox("Category", [...])
+status = st.sidebar.selectbox("Status", ["All", "Resolved", "Unresolved"])
+severity = st.sidebar.selectbox("Severity", ["All", "Low", "Medium", "High"])
+sentiment = st.sidebar.selectbox("Sentiment", ["All", "Positive", "Neutral", "Negative"])
+category = st.sidebar.selectbox("Category", ["All", "Bug", "Feature Request", "Other"])
 #show_filter_summary(status, severity, sentiment, category)
 view = st.sidebar.radio("Escalation View", ["All", "Escalated", "Non-Escalated"])
 
@@ -1169,6 +1169,8 @@ if st.sidebar.toggle("🌙 Dark Mode"):
     apply_dark_mode()
 
 # 📌 Sticky Filter Summary
+st.sidebar.markdown("### 🔍 Filters")
+# (Then your selectboxes)
 show_filter_summary(status, severity, sentiment, category)
 
 # 📄 PDF Report
@@ -1177,7 +1179,10 @@ if st.sidebar.button("📄 Generate PDF Report"):
     st.sidebar.success("PDF report generated as report.pdf")
 
 # 🧠 AI Summary
+st.sidebar.markdown("### 📊 AI Summary")
 st.sidebar.markdown(summarize_escalations())
+- 📌 Total cases: 2  
+- 🚨 Escalated: 2"
 
 # 🔄 Schedule Retraining
 schedule_weekly_retraining()
