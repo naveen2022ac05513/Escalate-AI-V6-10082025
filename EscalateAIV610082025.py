@@ -66,46 +66,50 @@ processed_email_hashes_lock = threading.Lock()
 # Database / schema
 # -----------------------
 def ensure_schema():
-    """Create escalations table and hash index if not exists."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+
+    # Create table with full schema if not exists
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS escalations (
-            id TEXT PRIMARY KEY,
-            customer TEXT,
-            issue TEXT,
-            sentiment TEXT,
-            urgency TEXT,
-            severity TEXT,
-            criticality TEXT,
-            category TEXT,
-            status TEXT,
-            timestamp TEXT,
-            action_taken TEXT,
-            owner TEXT,
-            owner_email TEXT,
-            escalated TEXT,
-            priority TEXT,
-            escalation_flag TEXT,
-            action_owner TEXT,
-            status_update_date TEXT,
-            user_feedback TEXT,
-            hash TEXT
-        )
+    CREATE TABLE IF NOT EXISTS escalations (
+        id TEXT PRIMARY KEY,
+        customer TEXT,
+        issue TEXT,
+        sentiment TEXT,
+        urgency TEXT,
+        severity TEXT,
+        criticality TEXT,
+        category TEXT,
+        status TEXT,
+        timestamp TEXT,
+        action_taken TEXT,
+        owner TEXT,
+        owner_email TEXT,
+        escalated TEXT,
+        priority TEXT,
+        escalation_flag TEXT,
+        action_owner TEXT,
+        status_update_date TEXT,
+        user_feedback TEXT
+    )
     ''')
-    # create index on hash for fast lookup
-    cursor.execute('CREATE INDEX IF NOT EXISTS idx_escalations_hash ON escalations (hash)')
+
+    # Check if 'hash' column exists
+    cursor.execute("PRAGMA table_info(escalations)")
+    columns = [row[1] for row in cursor.fetchall()]
+    if 'hash' not in columns:
+        cursor.execute("ALTER TABLE escalations ADD COLUMN hash TEXT")
+
+    # Check if index exists
+    cursor.execute("""
+        SELECT name FROM sqlite_master 
+        WHERE type='index' AND name='idx_escalations_hash'
+    """)
+    if not cursor.fetchone():
+        cursor.execute("CREATE INDEX idx_escalations_hash ON escalations (hash)")
+
     conn.commit()
     conn.close()
-
-def hash_exists(h):
-    """Returns True if given hash exists in DB."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT 1 FROM escalations WHERE hash = ? LIMIT 1", (h,))
-    found = cursor.fetchone() is not None
-    conn.close()
-    return found
 
 def get_next_escalation_id():
     """Generate sequential escalation ID SESICE-25xxxxx by looking up max id in DB."""
