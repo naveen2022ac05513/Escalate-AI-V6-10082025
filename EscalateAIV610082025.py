@@ -1040,9 +1040,9 @@ def send_daily_escalation_summary():
         print(f"❌ Failed to send daily escalation email: {e}")
 
     st.sidebar.markdown("### 📅 Daily Summary Email")
-        if st.sidebar.button("📨 Send Daily Escalation Email"):
-            send_daily_escalation_summary()
-            st.sidebar.success("✅ Daily escalation email sent.")
+    if st.sidebar.button("📨 Send Daily Escalation Email"):
+       send_daily_escalation_summary()
+       st.sidebar.success("✅ Daily escalation email sent.")
 
 # -----------------------
 # --- NOTES -------------
