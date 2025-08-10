@@ -882,7 +882,7 @@ with tabs[0]:
                             colA, colB, colC, colD = st.columns([1, 2, 2, 1])
 
                             with colA:
-                                if st.button("✔️ Mark as Resolved", key=f"{prefix}_resolved"):
+                                if st.button("✔️ Resolved", key=f"{prefix}_resolved"):
                                     owner_email = row.get("owner_email", EMAIL_USER)
                                     update_escalation_status(row['id'], "Resolved", row.get("action_taken", ""), row.get("owner", ""), owner_email)
                                     send_alert("Case marked as resolved.", via="email", recipient=owner_email)
@@ -899,7 +899,7 @@ with tabs[0]:
                                 n1_email = st.text_input("N+1 Email", key=f"{prefix}_n1email")
 
                             with colD:
-                                if st.button("🚀 Escalate to N+1", key=f"{prefix}_n1btn"):
+                                if st.button("🚀 To N+1", key=f"{prefix}_n1btn"):
                                     update_escalation_status(row['id'], "Escalated", row.get("action_taken", ""), row.get("owner", ""), n1_email)
                                     send_alert("Case escalated to N+1.", via="email", recipient=n1_email)
                                     send_alert("Case escalated to N+1.", via="teams", recipient=n1_email)
