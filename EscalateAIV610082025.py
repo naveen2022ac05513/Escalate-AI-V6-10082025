@@ -563,13 +563,14 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-status_bar = render_status_bar(
-    row['severity'],
-    row['criticality'],
-    row['urgency'],
-    row['sentiment']
-)
-st.markdown(status_bar, unsafe_allow_html=True)
+for i, row in bucket.iterrows():
+    status_bar = render_status_bar(
+        row['severity'],
+        row['criticality'],
+        row['urgency'],
+        row['sentiment']
+    )
+    st.markdown(status_bar, unsafe_allow_html=True)
 
 st.markdown(f"""
 **🧠 Attributes:**
