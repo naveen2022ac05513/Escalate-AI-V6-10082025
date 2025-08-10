@@ -97,8 +97,10 @@ def ensure_schema():
     # Check if 'hash' column exists
     cursor.execute("PRAGMA table_info(escalations)")
     columns = [row[1] for row in cursor.fetchall()]
-    if 'hash' not in columns:
-        cursor.execute("ALTER TABLE escalations ADD COLUMN hash TEXT")
+    hash_exists = 'hash' in columns
+
+    if not hash_exists:
+    cursor.execute("ALTER TABLE escalations ADD COLUMN hash TEXT")
 
     # Check if index exists
     cursor.execute("""
