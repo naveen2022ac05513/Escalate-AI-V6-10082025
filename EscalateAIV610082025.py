@@ -898,54 +898,48 @@ with tabs[0]:
                                 send_alert("Case escalated to N+1.", via="email", recipient=n1_email)
                                 send_alert("Case escalated to N+1.", via="teams", recipient=n1_email)
 
-                        # Metadata in 2 rows, 3 columns with color bars
+                        # Metadata in 2 rows × 3 columns with color bars and titles
                         row1_col1, row1_col2, row1_col3 = st.columns(3)
                         with row1_col1:
                             st.markdown(f"""
-                                <div style='background-color:#3498db;padding:6px;border-radius:5px;color:white;text-align:center'>
-                                📝 {row['issue']}
+                                <div style='background-color:{header_color};padding:6px;border-radius:5px;color:white;text-align:center'>
+                                📛 Severity<br>{row['severity']}
                                 </div>
                             """, unsafe_allow_html=True)
                         with row1_col2:
                             st.markdown(f"""
-                                <div style='background-color:{header_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                                📛 {row['severity']}
+                                <div style='background-color:{urgency_color};padding:6px;border-radius:5px;color:white;text-align:center'>
+                                ⚡ Urgency<br>{row['urgency']}
                                 </div>
                             """, unsafe_allow_html=True)
                         with row1_col3:
                             st.markdown(f"""
-                                <div style='background-color:{urgency_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                                ⚡ {row['urgency']}
+                                <div style='background-color:#8e44ad;padding:6px;border-radius:5px;color:white;text-align:center'>
+                                🎯 Criticality<br>{row['criticality']}
                                 </div>
                             """, unsafe_allow_html=True)
 
                         row2_col1, row2_col2, row2_col3 = st.columns(3)
                         with row2_col1:
                             st.markdown(f"""
-                                <div style='background-color:#8e44ad;padding:6px;border-radius:5px;color:white;text-align:center'>
-                                🎯 {row['criticality']}
+                                <div style='background-color:#16a085;padding:6px;border-radius:5px;color:white;text-align:center'>
+                                📂 Category<br>{row['category']}
                                 </div>
                             """, unsafe_allow_html=True)
                         with row2_col2:
-                            st.markdown(f"""
-                                <div style='background-color:#16a085;padding:6px;border-radius:5px;color:white;text-align:center'>
-                                📂 {row['category']}
-                                </div>
-                            """, unsafe_allow_html=True)
-                        with row2_col3:
                             sentiment_color = "#e74c3c" if row['sentiment'] == "Negative" else "#2ecc71" if row['sentiment'] == "Positive" else "#f39c12"
                             st.markdown(f"""
                                 <div style='background-color:{sentiment_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                                💬 {row['sentiment']}
+                                💬 Sentiment<br>{row['sentiment']}
                                 </div>
                             """, unsafe_allow_html=True)
-
-                        # Escalated status bar
-                        st.markdown(f"""
-                            <div style='background-color:#c0392b;padding:6px;border-radius:5px;color:white;text-align:center'>
-                            📈 {row['escalated']}
-                            </div>
-                        """, unsafe_allow_html=True)
+                        with row2_col3:
+                            escalated_color = "#c0392b" if row['escalated'] == "Yes" else "#7f8c8d"
+                            st.markdown(f"""
+                                <div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>
+                                📈 Escalated<br>{row['escalated']}
+                                </div>
+                            """, unsafe_allow_html=True)
 
                         # Editable fields
                         new_status = st.selectbox("Update Status", ["Open", "In Progress", "Resolved"],
