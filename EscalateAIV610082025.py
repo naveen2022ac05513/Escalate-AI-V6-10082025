@@ -881,14 +881,14 @@ with tabs[0]:
                         if not compact_mode:
                             colA, colB, colC, colD = st.columns([1, 2, 2, 1])
 
-                            with colA:
+                            with colB:
                                 if st.button("✔️ Resolved", key=f"{prefix}_resolved"):
                                     owner_email = row.get("owner_email", EMAIL_USER)
                                     update_escalation_status(row['id'], "Resolved", row.get("action_taken", ""), row.get("owner", ""), owner_email)
                                     send_alert("Case marked as resolved.", via="email", recipient=owner_email)
                                     send_alert("Case marked as resolved.", via="teams", recipient=owner_email)
 
-                            with colB:
+                            with colA:
                                 st.markdown(f"""
                                     <div style='background-color:{ageing_color};padding:6px;border-radius:5px;color:white;text-align:center'>
                                     ⏱️ Ageing: {ageing_str}
