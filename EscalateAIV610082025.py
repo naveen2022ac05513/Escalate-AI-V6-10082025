@@ -978,6 +978,67 @@ if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
     conn.close()
     st.sidebar.warning("Database reset. Please restart the app.")
 
+import schedule
+import threading
+import time
+
+def start_daily_scheduler():
+    schedule.every().day.at("09:00").do(send_daily_escalation_report)
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
+
+if 'daily_scheduler' not in st.session_state:
+    scheduler_thread = threading.Thread(target=start_daily_scheduler, daemon=True)
+    scheduler_thread.start()
+    st.session_state['daily_scheduler'] = scheduler_thread
+
+from email.message import EmailMessage
+import smtplib
+import os
+from dotenv import load_dotenv
+import pandas as pd
+
+load_dotenv()
+
+def send_daily_escalation_report():
+    df_esc = fetch_escalations()
+    df_esc = df_esc[df_esc["escalated"] == "Yes"]
+    if df_esc.empty:
+        print("📭 No escalated cases to send.")
+        return
+
+    file_path = "daily_escalated_cases.xlsx"
+    df_esc.to_excel(file_path, index=False)
+
+    try:
+        msg = EmailMessage()
+        msg['Subject'] = "📊 Daily Escalated Cases Report – 9 AM"
+        msg['From'] = os.getenv("EMAIL_USER")
+        msg['To'] = os.getenv("EMAIL_RECEIVER")
+        msg.set_content("Attached is the daily escalation report as of 9 AM.")
+
+        with open(file_path, "rb") as f:
+            msg.add_attachment(
+                f.read(),
+                maintype="application",
+                subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                filename="daily_escalated_cases.xlsx"
+            )
+
+        with smtplib.SMTP(os.getenv("EMAIL_SMTP_SERVER"), int(os.getenv("EMAIL_SMTP_PORT"))) as server:
+            server.starttls()
+            server.login(os.getenv("EMAIL_USER"), os.getenv("EMAIL_PASS"))
+            server.send_message(msg)
+        print("✅ Daily escalation report sent.")
+    except Exception as e:
+        print(f"❌ Failed to send daily report: {e}")
+
+send_daily_escalation_report()
+
+if st.sidebar.button("📤 Send Daily Report Now"):
+    send_daily_escalation_report()
+
 # -----------------------
 # --- NOTES -------------
 # -----------------------
