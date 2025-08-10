@@ -1169,7 +1169,7 @@ if st.sidebar.toggle("🌙 Dark Mode"):
     apply_dark_mode()
 
 # 📌 Sticky Filter Summary
-show_filter_summary(status_filter, severity_filter, sentiment_filter, category_filter)
+show_filter_summary(status, severity, sentiment, category)
 
 # 📄 PDF Report
 if st.sidebar.button("📄 Generate PDF Report"):
