@@ -826,7 +826,7 @@ def send_alert(message, via="email", recipient=None):
             print(f"❌ Teams sending failed: {e}")
             
 # --- Main Tabs ---
-tabs = st.tabs(["🗃️ All", "🚩 Escalated", "🔁 Feedback & Retraining"])
+tabs = st.tabs(["🗃️ All", "🚩 Escalated", "🔁 Feedback & Retraining", "📊 Analytics"])
 
 import datetime
 import time
@@ -1179,17 +1179,16 @@ if st.sidebar.button("📄 Generate PDF Report"):
 # 🧠 AI Summary
 st.sidebar.markdown(summarize_escalations())
 
-# 📈 Analytics
-render_analytics()
-
-# 🔥 SLA Heatmap
-render_sla_heatmap()
-
-# 🧠 Feature Importance (optional)
-model = train_model()
-if model:
-    show_feature_importance(model)
-
 # 🔄 Schedule Retraining
 schedule_weekly_retraining()
 
+with tabs[3]:
+    st.subheader("📊 Escalation Analytics Dashboard")
+   # 📈 Analytics
+    render_analytics()
+    # 🔥 SLA Heatmap
+    render_sla_heatmap()
+    # 🧠 Feature Importance (optional)
+    model = train_model()
+    if model:
+        show_feature_importance(model)
