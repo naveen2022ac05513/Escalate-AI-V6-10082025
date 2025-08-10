@@ -553,9 +553,9 @@ if uploaded_file:
                 continue
             # compute hash for Excel row -> normalized customer + issue
             h = normalize_text_for_hash(customer, issue)
-            if hash_exists(h):
-                skipped += 1
-                continue
+            #if hash_exists(h):
+            #    skipped += 1
+            #    continue
             issue_summary = summarize_issue_text(issue, max_len=120)
             sentiment, urgency, severity, criticality, category, escalation_flag = analyze_issue(issue)
             inserted, info = insert_escalation(customer, issue_summary, sentiment, urgency, severity, criticality, category, escalation_flag, "normal", "", "", h)
