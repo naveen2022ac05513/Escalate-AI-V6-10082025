@@ -367,11 +367,16 @@ def train_model():
     based on historical escalation data in the database.
     Returns the trained model, or None if not enough data.
     """
+    # Make sure df is defined and has the 'status' column
+    
     df = fetch_escalations()
-    if df.shape[0] < 20:
-        # Not enough data for meaningful model training
-        return None
-
+    if df.empty or "status" not in df.columns:
+        st.warning("No escalation data available.")
+    else:
+        bucket = df[df["status"] == "Open"]  # or any valid status
+        for i, row in bucket.iterrows():
+            st.write(row["id"], row["issue"])  # or your actual logic
+    
     # Remove rows with missing critical info
     df = df.dropna(subset=['sentiment', 'urgency', 'severity', 'criticality', 'escalated'])
     if df.empty:
