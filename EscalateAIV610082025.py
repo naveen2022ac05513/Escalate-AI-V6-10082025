@@ -982,6 +982,9 @@ from io import BytesIO
 from email.message import EmailMessage
 import smtplib
 
+# -----------------------
+# --- DAILY EMAILER -------
+# -----------------------
 def send_daily_escalation_summary():
     """
     Sends a daily summary email of escalated cases with stats and Excel attachment.
