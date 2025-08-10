@@ -961,71 +961,6 @@ if 'email_thread' not in st.session_state:
     email_thread.start()
     st.session_state['email_thread'] = email_thread
 
-from io import BytesIO
-from email.message import EmailMessage
-import smtplib
-
-# -----------------------
-# --- DAILY EMAILER -------
-# -----------------------
-def send_daily_escalation_summary():
-    """
-    Sends a daily summary email of escalated cases with stats and Excel attachment.
-    """
-    df = fetch_escalations()
-    df = df[df["escalated"] == "Yes"]
-    today = datetime.datetime.now().date()
-
-    if df.empty:
-        message = f"✅ No escalated cases on {today}."
-        excel_bytes = None
-    else:
-        # 📊 Summary Stats
-        severity_counts = df["severity"].value_counts().to_dict()
-        category_counts = df["category"].value_counts().to_dict()
-
-        stats_text = f"📊 Summary Stats for {today}:\n\n"
-        stats_text += "🔴 Severity Breakdown:\n" + "\n".join([f"• {k}: {v}" for k, v in severity_counts.items()])
-        stats_text += "\n\n📂 Category Breakdown:\n" + "\n".join([f"• {k}: {v}" for k, v in category_counts.items()])
-
-        # 📝 Case List
-        case_lines = [f"{row['id']} | {row['customer']} | {row['category']} | {row['severity']} | {row['status']}" 
-                      for _, row in df.iterrows()]
-        case_text = "\n\n🗂️ Escalated Cases:\n" + "\n".join(case_lines)
-
-        message = f"🚨 Daily Escalation Summary\n\n{stats_text}\n{case_text}"
-
-        # 📎 Excel Attachment
-        excel_buffer = BytesIO()
-        with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
-            df.to_excel(writer, index=False, sheet_name="Escalated Cases")
-        excel_bytes = excel_buffer.getvalue()
-
-    # 📤 Send Email
-    try:
-        msg = EmailMessage()
-        msg['Subject'] = f"🚨 Daily Escalation Summary – {today}"
-        msg['From'] = EMAIL_USER
-        msg['To'] = ALERT_RECIPIENT
-        msg.set_content(message)
-
-        if excel_bytes:
-            msg.add_attachment(excel_bytes, maintype='application',
-                               subtype='vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                               filename=f"Escalated_Cases_{today}.xlsx")
-
-        with smtplib.SMTP(EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT) as server:
-            server.starttls()
-            server.login(EMAIL_USER, EMAIL_PASS)
-            server.send_message(msg)
-            print("✅ Daily escalation email sent with attachment.")
-    except Exception as e:
-        print(f"❌ Failed to send daily escalation email: {e}")
-
-    st.sidebar.markdown("### 📅 Daily Summary Email")
-    if st.sidebar.button("📨 Send Daily Escalation Email"):
-       send_daily_escalation_summary()
-       st.sidebar.success("✅ Daily escalation email sent.")
 
 # -----------------------
 # --- DEV OPTIONS -------
@@ -1043,8 +978,6 @@ if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
     conn.close()
     st.sidebar.warning("Database reset. Please restart the app.")
 
-
-
 # -----------------------
 # --- NOTES -------------
 # -----------------------
@@ -1054,6 +987,5 @@ if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
 # - ML model is RandomForest; can be replaced or enhanced as needed
 # - Background email polling fetches every 60 seconds automatically
 # - Excel export fixed with context manager, no deprecated save()
-
 
 
