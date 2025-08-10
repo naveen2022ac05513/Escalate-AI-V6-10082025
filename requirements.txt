@@ -16,3 +16,4 @@ streamlit-sortables
 xlsxwriter
 schedule
 pdfkit
+spacy
