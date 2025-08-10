@@ -880,32 +880,23 @@ for status, col in zip(["Open", "In Progress", "Resolved"], [col1, col2, col3]):
 
 
                 st.markdown(f"**Issue:** {row['issue']}")
-                               # 🔹 Compact Metadata Display in Columns with Color Bars
+                # 🔹 Compact Metadata Display in Columns with Color Bars
+                # 🔹 Compact Metadata Display in Columns with Black Titles and Colored Values
                 col_meta1, col_meta2, col_meta3 = st.columns(3)
                 
                 with col_meta1:
                     st.markdown(f"""
-                    <div style='background-color:{header_color};padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
-                    <strong>Severity:</strong> {row['severity']}
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                    st.markdown(f"""
-                    <div style='background-color:{urgency_color};padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
-                    <strong>Urgency:</strong> {row['urgency']}
+                    <div style='text-align:left;font-size:13px;'>
+                    <strong style='color:black;'>Severity:</strong> <span style='color:{header_color};font-weight:bold;'>{row['severity']}</span><br>
+                    <strong style='color:black;'>Urgency:</strong> <span style='color:{urgency_color};font-weight:bold;'>{row['urgency']}</span>
                     </div>
                     """, unsafe_allow_html=True)
                 
                 with col_meta2:
                     st.markdown(f"""
-                    <div style='background-color:#3498db;padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
-                    <strong>Criticality:</strong> {row['criticality']}
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                    st.markdown(f"""
-                    <div style='background-color:#9b59b6;padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
-                    <strong>Category:</strong> {row['category']}
+                    <div style='text-align:left;font-size:13px;'>
+                    <strong style='color:black;'>Criticality:</strong> <span style='color:#3498db;font-weight:bold;'>{row['criticality']}</span><br>
+                    <strong style='color:black;'>Category:</strong> <span style='color:#9b59b6;font-weight:bold;'>{row['category']}</span>
                     </div>
                     """, unsafe_allow_html=True)
                 
@@ -916,25 +907,21 @@ for status, col in zip(["Open", "In Progress", "Resolved"], [col1, col2, col3]):
                         "negative": "#e74c3c"
                     }.get(row['sentiment'], "#7f8c8d")
                 
+                    esc_color = "#e74c3c" if row['escalated'] == "Yes" else "#2ecc71"
+                
                     st.markdown(f"""
-                    <div style='background-color:{sentiment_color};padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
-                    <strong>Sentiment:</strong> {row['sentiment']}
+                    <div style='text-align:left;font-size:13px;'>
+                    <strong style='color:black;'>Sentiment:</strong> <span style='color:{sentiment_color};font-weight:bold;'>{row['sentiment']}</span><br>
+                    <strong style='color:black;'>Escalated:</strong> <span style='color:{esc_color};font-weight:bold;'>{row['escalated']}</span>
                     </div>
                     """, unsafe_allow_html=True)
                 
-                    esc_color = "#e74c3c" if row['escalated'] == "Yes" else "#2ecc71"
-                    st.markdown(f"""
-                    <div style='background-color:{esc_color};padding:6px;border-radius:5px;color:white;text-align:center;font-size:13px;'>
-                    <strong>Escalated:</strong> {row['escalated']}
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                new_status = st.selectbox("Update Status", ["Open", "In Progress", "Resolved"],
-                                          index=["Open", "In Progress", "Resolved"].index(row["status"]),
-                                          key=f"status_{row['id']}")
-                new_action = st.text_input("Action Taken", row.get("action_taken", ""), key=f"action_{row['id']}")
-                new_owner = st.text_input("Owner", row.get("owner", ""), key=f"owner_{row['id']}")
-                new_owner_email = st.text_input("Owner Email", row.get("owner_email", ""), key=f"email_{row['id']}")
+                    new_status = st.selectbox("Update Status", ["Open", "In Progress", "Resolved"],
+                                              index=["Open", "In Progress", "Resolved"].index(row["status"]),
+                                              key=f"status_{row['id']}")
+                    new_action = st.text_input("Action Taken", row.get("action_taken", ""), key=f"action_{row['id']}")
+                    new_owner = st.text_input("Owner", row.get("owner", ""), key=f"owner_{row['id']}")
+                    new_owner_email = st.text_input("Owner Email", row.get("owner_email", ""), key=f"email_{row['id']}")
 
                 if st.button("💾 Save Changes", key=f"save_{row['id']}"):
                     update_escalation_status(row['id'], new_status, new_action, new_owner, new_owner_email)
