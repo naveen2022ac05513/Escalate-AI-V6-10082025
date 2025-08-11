@@ -36,6 +36,10 @@ from enhancements import (
     summarize_escalations
 )
 
+import streamlit as st
+import pandas as pd
+from enhancements import render_category_breakdown, render_full_analytics_dashboard
+
 # Load environment variables from .env file (for credentials & config)
 load_dotenv()
 
