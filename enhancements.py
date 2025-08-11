@@ -121,14 +121,20 @@ def render_sla_heatmap():
         aggfunc='count'
     ).fillna(0)
 
-    # Enforce numeric dtype
     try:
         heatmap_data = heatmap_data.astype(float)
     except Exception as e:
         st.warning(f"⚠️ Heatmap data conversion failed: {e}")
         return
 
-    # Final validation before plotting
+    # Diagnostic logging
+    st.sidebar.markdown("### 🔍 Heatmap Diagnostics")
+    st.sidebar.write(f"Shape: {heatmap_data.shape}")
+    st.sidebar.write(f"Min: {np.nanmin(heatmap_data.values)}")
+    st.sidebar.write(f"Max: {np.nanmax(heatmap_data.values)}")
+    st.sidebar.dataframe(heatmap_data)
+
+    # Final validation
     if (
         heatmap_data.empty
         or heatmap_data.shape[0] == 0
@@ -138,11 +144,6 @@ def render_sla_heatmap():
         st.warning("⚠️ SLA heatmap skipped: no valid numeric data to render.")
         return
 
-    # Optional debug view
-    if st.sidebar.checkbox("🔍 Show raw SLA heatmap matrix"):
-        st.dataframe(heatmap_data)
-
-    # Render heatmap safely
     st.subheader("🔥 SLA Breach Heatmap")
     try:
         fig, ax = plt.subplots()
@@ -150,15 +151,15 @@ def render_sla_heatmap():
         st.pyplot(fig)
     except Exception as e:
         st.error(f"❌ Heatmap rendering failed: {type(e).__name__}: {str(e)}")
-
-    # Render heatmap safely
-    st.subheader("🔥 SLA Breach Heatmap")
-    try:
-        fig, ax = plt.subplots()
-        sns.heatmap(heatmap_data, ax=ax, cmap="Reds")
-        st.pyplot(fig)
-    except ValueError as e:
-        st.error(f"❌ Heatmap rendering failed: {str(e)}")
+        st.warning("📉 Falling back to bar chart.")
+        try:
+            fallback_data = df['category'].value_counts()
+            fig, ax = plt.subplots()
+            fallback_data.plot(kind='bar', color='tomato', ax=ax)
+            ax.set_title("Fallback: Escalation Count by Category")
+            st.pyplot(fig)
+        except Exception as fallback_error:
+            st.error(f"❌ Fallback chart failed: {type(fallback_error).__name__}: {str(fallback_error)}")
 
 # 🌙 Dark Mode Toggle
 def apply_dark_mode():
