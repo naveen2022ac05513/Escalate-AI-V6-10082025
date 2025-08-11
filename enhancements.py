@@ -30,9 +30,36 @@ def schedule_weekly_retraining():
 def render_analytics():
     df = fetch_escalations()
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+
     st.subheader("📊 Escalation Trends")
-    st.plotly_chart(px.histogram(df, x="timestamp", color="severity", title="Escalations Over Time"))
-    st.plotly_chart(px.pie(df, names="sentiment", title="Sentiment Distribution"))
+
+    # Histogram with count labels
+    hist_fig = px.histogram(
+        df,
+        x="timestamp",
+        color="severity",
+        title="Escalations Over Time",
+        labels={"timestamp": "Date", "count": "Escalation Count"},
+        nbins=30
+    )
+    hist_fig.update_traces(texttemplate='%{y}', textposition='outside')
+    hist_fig.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
+    st.plotly_chart(hist_fig)
+
+    st.subheader("💬 Sentiment Distribution")
+
+    # Pie chart with percentage and count labels
+    sentiment_counts = df["sentiment"].value_counts().reset_index()
+    sentiment_counts.columns = ["sentiment", "count"]
+    pie_fig = px.pie(
+        sentiment_counts,
+        names="sentiment",
+        values="count",
+        title="Sentiment Distribution",
+        hole=0.4
+    )
+    pie_fig.update_traces(textposition='inside', textinfo='percent+label')
+    st.plotly_chart(pie_fig)
 
 # 🧠 Explainable ML (Feature Importance)
 def show_feature_importance(model):
@@ -223,3 +250,72 @@ def train_model():
     model = RandomForestClassifier(random_state=42)
     model.fit(X_train, y_train)
     return model
+
+# 📊 Escalation Rate by Category
+
+def render_category_breakdown():
+    df = fetch_escalations()
+    if "category" not in df.columns or df["category"].isnull().all():
+        st.info("No category data available.")
+        return
+
+    st.subheader("📂 Escalation Rate by Category")
+    category_counts = df["category"].value_counts().reset_index()
+    category_counts.columns = ["Category", "Count"]
+
+    fig = px.bar(
+        category_counts,
+        x="Category",
+        y="Count",
+        title="Escalation Volume by Category",
+        text="Count",
+        color="Category"
+    )
+    fig.update_traces(textposition='outside')
+    st.plotly_chart(fig)
+
+    # Download button
+    st.download_button(
+        label="📥 Download Category Chart (PNG)",
+        data=fig.to_image(format="png"),
+        file_name="category_breakdown.png",
+        mime="image/png"
+    )
+
+#⏰ SLA Breach Trend Over Time
+
+def render_sla_trend():
+    df = fetch_escalations()
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+    df['Day'] = df['timestamp'].dt.date
+
+    # Define breach condition
+    now = datetime.datetime.now()
+    df["SLA_Breach_Flag"] = (
+        (df["status"] != "Resolved") &
+        (df["priority"] == "high") &
+        ((now - df["timestamp"]) > datetime.timedelta(minutes=10))
+    )
+
+    breach_trend = df[df["SLA_Breach_Flag"]].groupby("Day").size().reset_index(name="Breaches")
+
+    if breach_trend.empty:
+        st.info("✅ No SLA breaches to show.")
+        return
+
+    st.subheader("⏰ SLA Breach Trend")
+    fig = px.line(
+        breach_trend,
+        x="Day",
+        y="Breaches",
+        title="SLA Breaches Over Time",
+        markers=True
+    )
+    st.plotly_chart(fig)
+
+    st.download_button(
+        label="📥 Download SLA Trend (PNG)",
+        data=fig.to_image(format="png"),
+        file_name="sla_trend.png",
+        mime="image/png"
+    )
