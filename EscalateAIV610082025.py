@@ -1178,15 +1178,6 @@ if st.sidebar.button("📄 Generate PDF Report"):
     generate_pdf_report()
     st.sidebar.success("PDF report generated as report.pdf")
 
-# 🧠 AI Summary
-st.sidebar.markdown("### 📊 AI Summary")
-st.sidebar.markdown(summarize_escalations())
-#- 📌 Total cases: 2  
-#- 🚨 Escalated: 2"
-
-# 🔄 Schedule Retraining
-schedule_weekly_retraining()
-
 with tabs[3]:
     st.subheader("📊 Escalation Analytics Dashboard")
     
@@ -1194,13 +1185,12 @@ with tabs[3]:
     render_analytics()
     
     # 🔥 SLA Heatmap with error handling
-    #try:
+    try:
         render_sla_heatmap()
-    #except Exception as e:
-    #    st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
+    except Exception as e:
+        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
     
     # 🧠 Feature Importance (optional)
     model = train_model()
     if model:
         show_feature_importance(model)
-
