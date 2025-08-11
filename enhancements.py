@@ -154,10 +154,19 @@ def render_sla_heatmap():
 def apply_dark_mode():
     st.markdown("""
     <style>
-    body { background-color: #121212; color: #e0e0e0; }
-    .sidebar .sidebar-content { background-color: #1e1e1e; }
+    html, body, [class*="css"] {
+        background-color: #121212 !important;
+        color: #e0e0e0 !important;
+    }
+    .stApp {
+        background-color: #121212 !important;
+    }
+    .sidebar .sidebar-content {
+        background-color: #1e1e1e !important;
+    }
     </style>
     """, unsafe_allow_html=True)
+
 
 # 📌 Sticky Filter Summary
 def show_filter_summary(status, severity, sentiment, category):
