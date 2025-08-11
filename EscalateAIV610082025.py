@@ -1191,6 +1191,10 @@ if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
 if st.sidebar.toggle("🌙 Dark Mode"):
     apply_dark_mode()
 
+# AI Assistant Summary
+st.sidebar.subheader("🧠 AI Assistant Summary")
+st.sidebar.write(summarize_escalations())
+
 # 📌 Sticky Filter Summary
 st.sidebar.markdown("### 🔍 Filters")
 # (Then your selectboxes)
