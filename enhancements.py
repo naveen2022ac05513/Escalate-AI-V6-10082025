@@ -8,7 +8,6 @@ import threading
 import plotly.express as px
 from rapidfuzz import fuzz
 import streamlit as st
-import pdfkit
 import seaborn as sns
 import matplotlib.pyplot as plt
 import sqlite3
@@ -51,7 +50,6 @@ def is_duplicate(issue_text, threshold=90):
 # PDF Generator
 
 from xhtml2pdf import pisa
-import pandas as pd
 
 def generate_pdf_report():
     df = fetch_escalations()
