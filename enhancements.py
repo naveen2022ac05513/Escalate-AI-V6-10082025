@@ -96,29 +96,59 @@ def render_sla_heatmap():
     import matplotlib.pyplot as plt
     import streamlit as st
 
-    # Example computation — replace with your actual logic
-    heatmap_data = df.pivot_table(index="Team", columns="Day", values="SLA_Breach_Count", aggfunc="sum")
+    # Fetch escalation data
+    df = fetch_escalations()
 
-    if heatmap_data is None or heatmap_data.empty:
-        st.warning("No SLA data available to render heatmap.")
+    if df.empty or "timestamp" not in df.columns or "priority" not in df.columns:
+        st.warning("Insufficient data to render SLA heatmap.")
         return
 
-    mask = heatmap_data.isnull()
+    # Convert timestamp to datetime
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+
+    # Create a 'Day' column for grouping
+    df['Day'] = df['timestamp'].dt.date
+
+    # Optional: Assign teams if not present
+    if "Team" not in df.columns:
+        df["Team"] = df["owner"].fillna("Unassigned")
+
+    # Define SLA breach condition (e.g., unresolved high-priority cases older than 10 minutes)
+    now = datetime.datetime.now()
+    df["SLA_Breach_Flag"] = (
+        (df["status"] != "Resolved") &
+        (df["priority"] == "high") &
+        ((now - df["timestamp"]) > datetime.timedelta(minutes=10))
+    )
+
+    # Aggregate breach counts
+    heatmap_data = df[df["SLA_Breach_Flag"]].pivot_table(
+        index="Team",
+        columns="Day",
+        values="SLA_Breach_Flag",
+        aggfunc="sum",
+        fill_value=0
+    )
+
+    if heatmap_data.empty:
+        st.info("✅ No SLA breaches to display.")
+        return
+
+    # Plot heatmap
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.heatmap(
         heatmap_data,
         ax=ax,
         cmap="Reds",
-        mask=mask,
         linewidths=0.5,
         linecolor='white',
         annot=True,
         fmt=".0f",
         cbar_kws={"label": "SLA Breach Count"}
     )
-    ax.collections[0].cmap.set_bad('lightgrey')
-    ax.set_title("SLA Breach Heatmap", fontsize=14)
+    ax.set_title("🔥 SLA Breach Heatmap", fontsize=14)
     st.pyplot(fig)
+    
 
 # 🌙 Dark Mode Toggle
 def apply_dark_mode():
