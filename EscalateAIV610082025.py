@@ -39,6 +39,20 @@ from enhancements import (
     train_model
 )
 
+from advanced_enhancements import (
+    predict_resolution_eta,
+    show_shap_explanation,
+    detect_cosine_duplicates,
+    link_email_threads,
+    load_custom_plugins,
+    send_whatsapp_message,
+    generate_text_pdf,
+    render_model_metrics,
+    score_feedback_quality,
+    validate_escalation_schema,
+    log_escalation_action
+)
+
 # Load environment variables from .env file (for credentials & config)
 load_dotenv()
 
