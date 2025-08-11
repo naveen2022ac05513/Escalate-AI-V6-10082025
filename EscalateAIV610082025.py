@@ -24,6 +24,8 @@ from dotenv import load_dotenv
 from enhancements import (
     schedule_weekly_retraining,
     render_analytics,
+    render_category_breakdown,      # ✅ New
+    render_sla_trend,               # ✅ New
     show_feature_importance,
     is_duplicate,
     generate_pdf_report,
@@ -33,6 +35,7 @@ from enhancements import (
     get_escalation_template,
     summarize_escalations
 )
+
 # Load environment variables from .env file (for credentials & config)
 load_dotenv()
 
