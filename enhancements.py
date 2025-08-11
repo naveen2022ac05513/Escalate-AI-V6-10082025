@@ -92,7 +92,6 @@ def generate_pdf_report():
 
 
 # 🔥 SLA Heatmap Visualization (Robust Version)
-
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -127,26 +126,23 @@ def render_sla_heatmap():
         st.warning(f"⚠️ Heatmap data conversion failed: {e}")
         return
 
-    # ✅ Pre-check Seaborn’s internal logic
-    try:
-        _ = np.nanmin(heatmap_data.values)
-        _ = np.nanmax(heatmap_data.values)
-    except Exception:
-        st.warning("⚠️ SLA heatmap skipped: matrix contains only NaNs or invalid values.")
+    # ✅ Final validation: skip if all values are zero or NaN
+    if (
+        heatmap_data.empty
+        or heatmap_data.shape[0] == 0
+        or heatmap_data.shape[1] == 0
+        or not np.isfinite(heatmap_data.values).any()
+        or np.count_nonzero(heatmap_data.values) == 0
+    ):
+        st.warning("⚠️ SLA heatmap skipped: no meaningful data to render.")
         return
 
-    if heatmap_data.empty or not np.isfinite(heatmap_data.values).any():
-        st.warning("⚠️ SLA heatmap skipped: no valid numeric data to render.")
-        return
-
+    # ✅ Safe rendering
     st.subheader("🔥 SLA Breach Heatmap")
-    try:
-        fig, ax = plt.subplots()
-        sns.heatmap(heatmap_data, ax=ax, cmap="Reds")
-        st.pyplot(fig)
-    except Exception as e:
-        st.error(f"❌ Heatmap rendering failed: {type(e).__name__}: {str(e)}")
-        
+    fig, ax = plt.subplots()
+    sns.heatmap(heatmap_data, ax=ax, cmap="Reds")
+    st.pyplot(fig)
+
 # 🌙 Dark Mode Toggle
 def apply_dark_mode():
     st.markdown("""
