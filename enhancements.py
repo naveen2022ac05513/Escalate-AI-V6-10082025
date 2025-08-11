@@ -113,22 +113,21 @@ def render_sla_heatmap():
         aggfunc='count'
     )
 
-    # Exit early if pivot returns nothing or all NaN
-    if heatmap_data.empty or heatmap_data.isnull().all().all():
-        st.warning("⚠️ SLA heatmap skipped: no valid data points to render.")
+    # ✅ Stop if pivot is empty
+    if heatmap_data.empty:
+        st.warning("⚠️ SLA heatmap skipped: no data after pivot.")
         return
 
     heatmap_data = heatmap_data.fillna(0)
 
-    try:
-        heatmap_data = heatmap_data.astype(float)
-    except Exception as e:
-        st.warning(f"⚠️ Heatmap data conversion failed: {e}")
+    # ✅ Hard stop if no finite values
+    if not np.isfinite(heatmap_data.values).any():
+        st.warning("⚠️ SLA heatmap skipped: no finite numeric values.")
         return
 
-    # Final strict check
-    if not np.isfinite(heatmap_data.values).any() or np.count_nonzero(heatmap_data.values) == 0:
-        st.warning("⚠️ SLA heatmap skipped: no meaningful numeric data to render.")
+    # ✅ Hard stop if all zeros
+    if (heatmap_data.values == 0).all():
+        st.warning("⚠️ SLA heatmap skipped: all counts are zero.")
         return
 
     st.subheader("🔥 SLA Breach Heatmap")
