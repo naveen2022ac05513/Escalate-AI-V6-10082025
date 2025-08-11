@@ -613,6 +613,17 @@ import streamlit as st
 import pandas as pd
 import streamlit as st
 
+# 📩 Email Fetching
+st.sidebar.markdown("### 📩 Email Integration")
+if st.sidebar.button("Fetch Emails"):
+    emails = parse_emails()
+    for e in emails:
+        issue, customer = e["issue"], e["customer"]
+        sentiment, urgency, severity, criticality, category, escalation_flag = analyze_issue(issue)
+        insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag)
+    st.sidebar.success(f"✅ {len(emails)} emails processed")
+    #st.info(f"Fetched {len(messages[0].split())} unseen message(s)")
+
 # === 1. Upload Excel File from Sidebar ===
 st.sidebar.header("📁 Upload Escalation Sheet")
 uploaded_file = st.sidebar.file_uploader("Choose an Excel file", type=["xlsx"])
@@ -678,16 +689,6 @@ with col2:
             with open("escalated_cases.xlsx", "rb") as f:
                 st.download_button("Download Excel", f, file_name="escalated_cases.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
-# 📩 Email Fetching
-st.sidebar.markdown("### 📩 Email Integration")
-if st.sidebar.button("Fetch Emails"):
-    emails = parse_emails()
-    for e in emails:
-        issue, customer = e["issue"], e["customer"]
-        sentiment, urgency, severity, criticality, category, escalation_flag = analyze_issue(issue)
-        insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag)
-    st.sidebar.success(f"✅ {len(emails)} emails processed")
-    #st.info(f"Fetched {len(messages[0].split())} unseen message(s)")
 
 # ⏰ SLA Monitoring
 st.sidebar.markdown("### ⏰ SLA Monitor")
