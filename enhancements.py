@@ -256,35 +256,16 @@ def train_model():
 # 📊 Escalation Rate by Category
 
 def render_category_breakdown():
-    df = fetch_escalations()
-    if "category" not in df.columns or df["category"].isnull().all():
-        st.info("No category data available.")
-        return
-
-    st.subheader("📂 Escalation Rate by Category")
-    category_counts = df["category"].value_counts().reset_index()
-    category_counts.columns = ["Category", "Count"]
-
-    fig = px.bar(
-        category_counts,
-        x="Category",
-        y="Count",
-        title="Escalation Volume by Category",
-        text="Count",
-        color="Category"
-    )
-    fig.update_traces(textposition='outside')
-    st.plotly_chart(fig)
-
-    # Save and serve image
-    fig.write_image("category_chart.png")
-    with open("category_chart.png", "rb") as f:
+    fig = generate_category_chart()  # Assuming this returns a Plotly figure
+    fig.write_html("category_chart.html")
+    with open("category_chart.html", "r", encoding="utf-8") as f:
         st.download_button(
-            label="📥 Download Category Chart (PNG)",
+            label="📥 Download Category Chart (HTML)",
             data=f.read(),
-            file_name="category_chart.png",
-            mime="image/png"
+            file_name="category_chart.html",
+            mime="text/html"
         )
+    st.plotly_chart(fig, use_container_width=True)
         
 #⏰ SLA Breach Trend Over Time
 
