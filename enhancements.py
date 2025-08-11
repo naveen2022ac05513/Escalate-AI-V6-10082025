@@ -90,12 +90,28 @@ def generate_pdf_report():
     except Exception as e:
         print(f"❌ PDF generation failed: {e}")
 
-# 🔥 SLA Heatmap Visualization
+
+# 🔥 SLA Heatmap Visualization (Robust Version)
 def render_sla_heatmap():
     df = fetch_escalations()
+    if df.empty:
+        st.warning("⚠️ No escalation data available for SLA heatmap.")
+        return
+
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+    df = df.dropna(subset=['timestamp', 'category'])
+
+    if df.empty or 'category' not in df.columns:
+        st.warning("⚠️ Missing required fields for SLA heatmap.")
+        return
+
     df['hour'] = df['timestamp'].dt.hour
     heatmap_data = df.pivot_table(index='category', columns='hour', values='id', aggfunc='count').fillna(0)
+
+    if heatmap_data.empty or heatmap_data.isnull().all().all():
+        st.warning("⚠️ No valid data to render SLA heatmap.")
+        return
+
     st.subheader("🔥 SLA Breach Heatmap")
     fig, ax = plt.subplots()
     sns.heatmap(heatmap_data, ax=ax, cmap="Reds")
