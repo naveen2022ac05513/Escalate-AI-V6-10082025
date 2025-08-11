@@ -35,6 +35,10 @@ from enhancements import (
     fetch_escalations,
     train_model
 )
+
+import os
+assert os.path.exists("enhancements.py"), "❌ enhancements.py not found!"
+
 # Load environment variables from .env file (for credentials & config)
 load_dotenv()
 
