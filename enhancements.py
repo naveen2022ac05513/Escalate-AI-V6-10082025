@@ -93,6 +93,13 @@ def generate_pdf_report():
 
 # 🔥 SLA Heatmap Visualization (Robust Version)
 
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import streamlit as st
+from escalate_core import fetch_escalations
+
 def render_sla_heatmap():
     df = fetch_escalations()
     if df.empty:
@@ -120,9 +127,10 @@ def render_sla_heatmap():
         st.warning(f"⚠️ Heatmap data conversion failed: {e}")
         return
 
-    # ✅ Final safety check: test np.nanmin directly
+    # ✅ Pre-check Seaborn’s internal logic
     try:
         _ = np.nanmin(heatmap_data.values)
+        _ = np.nanmax(heatmap_data.values)
     except Exception:
         st.warning("⚠️ SLA heatmap skipped: matrix contains only NaNs or invalid values.")
         return
