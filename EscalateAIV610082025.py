@@ -24,8 +24,6 @@ from dotenv import load_dotenv
 from enhancements import (
     schedule_weekly_retraining,
     render_analytics,
-    render_category_breakdown,      # ✅ New
-    render_sla_trend,               # ✅ New
     show_feature_importance,
     is_duplicate,
     generate_pdf_report,
@@ -35,11 +33,6 @@ from enhancements import (
     get_escalation_template,
     summarize_escalations
 )
-
-import streamlit as st
-import pandas as pd
-from enhancements import render_category_breakdown, render_full_analytics_dashboard
-
 # Load environment variables from .env file (for credentials & config)
 load_dotenv()
 
@@ -614,17 +607,6 @@ import streamlit as st
 import pandas as pd
 import streamlit as st
 
-# 📩 Email Fetching
-st.sidebar.markdown("### 📩 Email Integration")
-if st.sidebar.button("Fetch Emails"):
-    emails = parse_emails()
-    for e in emails:
-        issue, customer = e["issue"], e["customer"]
-        sentiment, urgency, severity, criticality, category, escalation_flag = analyze_issue(issue)
-        insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag)
-    st.sidebar.success(f"✅ {len(emails)} emails processed")
-    #st.info(f"Fetched {len(messages[0].split())} unseen message(s)")
-
 # === 1. Upload Excel File from Sidebar ===
 st.sidebar.header("📁 Upload Escalation Sheet")
 uploaded_file = st.sidebar.file_uploader("Choose an Excel file", type=["xlsx"])
@@ -689,6 +671,17 @@ with col2:
                 df_esc.to_excel(writer, index=False)
             with open("escalated_cases.xlsx", "rb") as f:
                 st.download_button("Download Excel", f, file_name="escalated_cases.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+# 📩 Email Fetching
+st.sidebar.markdown("### 📩 Email Integration")
+if st.sidebar.button("Fetch Emails"):
+    emails = parse_emails()
+    for e in emails:
+        issue, customer = e["issue"], e["customer"]
+        sentiment, urgency, severity, criticality, category, escalation_flag = analyze_issue(issue)
+        insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag)
+    st.sidebar.success(f"✅ {len(emails)} emails processed")
+    #st.info(f"Fetched {len(messages[0].split())} unseen message(s)")
 
 # ⏰ SLA Monitoring
 st.sidebar.markdown("### ⏰ SLA Monitor")
@@ -1204,6 +1197,3 @@ with tabs[3]:
     model = train_model()
     if model:
         show_feature_importance(model)
-
-render_category_breakdown()
-render_sla_trend()
