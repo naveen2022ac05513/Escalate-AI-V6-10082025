@@ -6,14 +6,12 @@ import threading
 import plotly.express as px
 from rapidfuzz import fuzz
 import streamlit as st
-import pdfkit
 import seaborn as sns
 import matplotlib.pyplot as plt
 import sqlite3
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 import numpy as np
-from escalate_core import fetch_escalations
 from xhtml2pdf import pisa
 
 DB_PATH = "escalations.db"
@@ -30,6 +28,9 @@ def schedule_weekly_retraining():
 # 📊 Interactive Analytics Dashboard
 def render_analytics():
     df = fetch_escalations()
+    if df.empty:
+        st.warning("⚠️ No escalation data to display analytics.")
+        return
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     st.subheader("📊 Escalation Trends")
     st.plotly_chart(px.histogram(df, x="timestamp", color="severity", title="Escalations Over Time"))
@@ -52,6 +53,9 @@ def is_duplicate(issue_text, threshold=90):
 # 📄 PDF Generator
 def generate_pdf_report():
     df = fetch_escalations()
+    if df.empty:
+        st.warning("⚠️ No data available to generate PDF report.")
+        return
     html = f"""
     <html>
     <head>
@@ -83,11 +87,11 @@ def generate_pdf_report():
     try:
         with open("report.pdf", "wb") as f:
             pisa.CreatePDF(html, dest=f)
-        print("✅ PDF report generated successfully.")
+        st.success("✅ PDF report generated successfully.")
     except Exception as e:
-        print(f"❌ PDF generation failed: {e}")
+        st.error(f"❌ PDF generation failed: {e}")
 
-# 🔥 SLA Heatmap Visualization (Robust Version)
+# 🔥 SLA Heatmap Visualization (Safe Version)
 def render_sla_heatmap():
     df = fetch_escalations()
     if df.empty:
@@ -107,7 +111,14 @@ def render_sla_heatmap():
         columns='hour',
         values='id',
         aggfunc='count'
-    ).fillna(0)
+    )
+
+    # Exit early if pivot returns nothing or all NaN
+    if heatmap_data.empty or heatmap_data.isnull().all().all():
+        st.warning("⚠️ SLA heatmap skipped: no valid data points to render.")
+        return
+
+    heatmap_data = heatmap_data.fillna(0)
 
     try:
         heatmap_data = heatmap_data.astype(float)
@@ -115,23 +126,11 @@ def render_sla_heatmap():
         st.warning(f"⚠️ Heatmap data conversion failed: {e}")
         return
 
-    # ✅ Final validation: skip if all values are zero or NaN
-    if (
-        heatmap_data.empty
-        or heatmap_data.shape[0] == 0
-        or heatmap_data.shape[1] == 0
-        or not np.isfinite(heatmap_data.values).any()
-        or np.count_nonzero(heatmap_data.values) == 0
-    ):
-        st.warning("⚠️ SLA heatmap skipped: no meaningful data to render.")
+    # Final strict check
+    if not np.isfinite(heatmap_data.values).any() or np.count_nonzero(heatmap_data.values) == 0:
+        st.warning("⚠️ SLA heatmap skipped: no meaningful numeric data to render.")
         return
 
-    # 🔒 Extra safety: avoid seaborn crash if all NaN or zero
-    if heatmap_data.isnull().all().all() or (heatmap_data.to_numpy() == 0).all():
-        st.warning("⚠️ SLA heatmap skipped: no valid data points to render.")
-        return
-
-    # ✅ Safe rendering
     st.subheader("🔥 SLA Breach Heatmap")
     fig, ax = plt.subplots()
     sns.heatmap(heatmap_data, ax=ax, cmap="Reds")
@@ -172,7 +171,7 @@ def summarize_escalations():
     df = fetch_escalations()
     total = len(df)
     escalated = df[df['escalated'] == 'Yes'].shape[0]
-    return f"🔎 Summary: 📌Total cases: {total},🚨 Escalated: {escalated}."
+    return f"🔎 Summary: 📌Total cases: {total}, 🚨 Escalated: {escalated}."
 
 # 🔁 Local copy of fetch_escalations
 def fetch_escalations():
