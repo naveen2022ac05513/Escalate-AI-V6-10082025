@@ -98,7 +98,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import streamlit as st
-from escalate_core import fetch_escalations  # Adjust if your fetch function is elsewhere
+from escalate_core import fetch_escalations
 
 def render_sla_heatmap():
     df = fetch_escalations()
@@ -106,7 +106,6 @@ def render_sla_heatmap():
         st.warning("⚠️ No escalation data available for SLA heatmap.")
         return
 
-    # Ensure timestamp and category are usable
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     df = df.dropna(subset=['timestamp', 'category'])
 
@@ -114,7 +113,6 @@ def render_sla_heatmap():
         st.warning("⚠️ Missing required fields for SLA heatmap.")
         return
 
-    # Extract hour and pivot for heatmap
     df['hour'] = df['timestamp'].dt.hour
     heatmap_data = df.pivot_table(
         index='category',
@@ -123,15 +121,35 @@ def render_sla_heatmap():
         aggfunc='count'
     ).fillna(0)
 
+    # Enforce numeric dtype
+    try:
+        heatmap_data = heatmap_data.astype(float)
+    except Exception as e:
+        st.warning(f"⚠️ Heatmap data conversion failed: {e}")
+        return
+
     # Final validation before plotting
     if (
         heatmap_data.empty
         or heatmap_data.shape[0] == 0
         or heatmap_data.shape[1] == 0
-        or not np.any(np.isfinite(heatmap_data.values))
+        or not np.isfinite(heatmap_data.values).any()
     ):
         st.warning("⚠️ SLA heatmap skipped: no valid numeric data to render.")
         return
+
+    # Optional debug view
+    if st.sidebar.checkbox("🔍 Show raw SLA heatmap matrix"):
+        st.dataframe(heatmap_data)
+
+    # Render heatmap safely
+    st.subheader("🔥 SLA Breach Heatmap")
+    try:
+        fig, ax = plt.subplots()
+        sns.heatmap(heatmap_data, ax=ax, cmap="Reds")
+        st.pyplot(fig)
+    except Exception as e:
+        st.error(f"❌ Heatmap rendering failed: {type(e).__name__}: {str(e)}")
 
     # Render heatmap safely
     st.subheader("🔥 SLA Breach Heatmap")
