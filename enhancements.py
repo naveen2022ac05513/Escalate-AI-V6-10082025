@@ -1,231 +1,23 @@
-# enhancements.py
-
 import pandas as pd
 import datetime
 import schedule
 import time
 import threading
 import plotly.express as px
+import plotly.io as pio
 from rapidfuzz import fuzz
 import streamlit as st
-import pdfkit
-import seaborn as sns
-import matplotlib.pyplot as plt
 import sqlite3
+from xhtml2pdf import pisa
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-import plotly.io as pio
-pio.defaults.default_format = "png"
+import seaborn as sns
+import matplotlib.pyplot as plt
 
+pio.kaleido.scope.default_format = "png"
 DB_PATH = "escalations.db"
 
-# 🔄 Auto-Retraining Scheduler
-def schedule_weekly_retraining():
-    schedule.every().sunday.at("09:00").do(train_model)
-    def run_scheduler():
-        while True:
-            schedule.run_pending()
-            time.sleep(60)
-    threading.Thread(target=run_scheduler, daemon=True).start()
-
-# 📊 Interactive Analytics Dashboard
-def render_analytics():
-    df = fetch_escalations()
-    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-
-    st.subheader("📊 Escalation Trends")
-
-    # Histogram with count labels
-    hist_fig = px.histogram(
-        df,
-        x="timestamp",
-        color="severity",
-        title="Escalations Over Time",
-        labels={"timestamp": "Date", "count": "Escalation Count"},
-        nbins=30
-    )
-    hist_fig.update_traces(texttemplate='%{y}', textposition='outside')
-    hist_fig.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
-    st.plotly_chart(hist_fig)
-
-    st.subheader("💬 Sentiment Distribution")
-
-    # Pie chart with percentage and count labels
-    sentiment_counts = df["sentiment"].value_counts().reset_index()
-    sentiment_counts.columns = ["sentiment", "count"]
-    pie_fig = px.pie(
-        sentiment_counts,
-        names="sentiment",
-        values="count",
-        title="Sentiment Distribution",
-        hole=0.4
-    )
-    pie_fig.update_traces(textposition='inside', textinfo='percent+label')
-    st.plotly_chart(pie_fig)
-
-# 🧠 Explainable ML (Feature Importance)
-def show_feature_importance(model):
-    importance = pd.Series(model.feature_importances_, index=model.feature_names_in_)
-    st.subheader("🧠 Feature Importance")
-    st.plotly_chart(px.bar(importance.sort_values(), orientation='h', title="Top Predictive Features"))
-
-# 🧪 Fuzzy Deduplication
-def is_duplicate(issue_text, threshold=90):
-    df = fetch_escalations()
-    for existing in df["issue"]:
-        if fuzz.partial_ratio(issue_text, existing) > threshold:
-            return True
-    return False
-
-# PDF Generator
-
-from xhtml2pdf import pisa
-import pandas as pd
-
-def generate_pdf_report():
-    df = fetch_escalations()
-    html = f"""
-    <html>
-    <head>
-        <style>
-            table {{
-                width: 100%;
-                border-collapse: collapse;
-            }}
-            th, td {{
-                border: 1px solid #ccc;
-                padding: 8px;
-                text-align: left;
-            }}
-            th {{
-                background-color: #f2f2f2;
-            }}
-            h2 {{
-                text-align: center;
-                color: #2c3e50;
-            }}
-        </style>
-    </head>
-    <body>
-        <h2>📄 Escalation Report</h2>
-        {df.to_html(index=False)}
-    </body>
-    </html>
-    """
-    try:
-        with open("report.pdf", "wb") as f:
-            pisa.CreatePDF(html, dest=f)
-        print("✅ PDF report generated successfully.")
-    except Exception as e:
-        print(f"❌ PDF generation failed: {e}")
-
-# 🔥 SLA Heatmap Visualization
-def render_sla_heatmap():
-    import seaborn as sns
-    import matplotlib.pyplot as plt
-    import streamlit as st
-
-    # Fetch escalation data
-    df = fetch_escalations()
-
-    if df.empty or "timestamp" not in df.columns or "priority" not in df.columns:
-        st.warning("Insufficient data to render SLA heatmap.")
-        return
-
-    # Convert timestamp to datetime
-    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-
-    # Create a 'Day' column for grouping
-    df['Day'] = df['timestamp'].dt.date
-
-    # Optional: Assign teams if not present
-    if "Team" not in df.columns:
-        df["Team"] = df["owner"].fillna("Unassigned")
-
-    # Define SLA breach condition (e.g., unresolved high-priority cases older than 10 minutes)
-    now = datetime.datetime.now()
-    df["SLA_Breach_Flag"] = (
-        (df["status"] != "Resolved") &
-        (df["priority"] == "high") &
-        ((now - df["timestamp"]) > datetime.timedelta(minutes=10))
-    )
-
-    # Aggregate breach counts
-    heatmap_data = df[df["SLA_Breach_Flag"]].pivot_table(
-        index="Team",
-        columns="Day",
-        values="SLA_Breach_Flag",
-        aggfunc="sum",
-        fill_value=0
-    )
-
-    if heatmap_data.empty:
-        st.info("✅ No SLA breaches to display.")
-        return
-
-    # Plot heatmap
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.heatmap(
-        heatmap_data,
-        ax=ax,
-        cmap="Reds",
-        linewidths=0.5,
-        linecolor='white',
-        annot=True,
-        fmt=".0f",
-        cbar_kws={"label": "SLA Breach Count"}
-    )
-    ax.set_title("🔥 SLA Breach Heatmap", fontsize=14)
-    st.pyplot(fig)
-    
-
-# 🌙 Dark Mode Toggle
-def apply_dark_mode():
-    st.markdown("""
-    <style>
-    html, body, [class*="css"] {
-        background-color: #121212 !important;
-        color: #e0e0e0 !important;
-    }
-    .stApp {
-        background-color: #121212 !important;
-    }
-    .sidebar .sidebar-content {
-        background-color: #1e1e1e !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-
-# 📌 Sticky Filter Summary
-def show_filter_summary(status, severity, sentiment, category):
-    st.sidebar.markdown(f"""
-    <div style='position:sticky;top:10px;background:#f0f0f0;padding:6px;border-radius:5px'>
-    <b>Filters:</b><br>
-    Status: {status}<br>
-    Severity: {severity}<br>
-    Sentiment: {sentiment}<br>
-    Category: {category}
-    </div>
-    """, unsafe_allow_html=True)
-
-# 📧 Escalation Message Templates
-def get_escalation_template(severity):
-    TEMPLATES = {
-        "critical": "🚨 Immediate action required for critical issue.",
-        "major": "⚠️ Major issue reported. Please investigate.",
-        "minor": "ℹ️ Minor issue logged for review."
-    }
-    return TEMPLATES.get(severity.lower(), "🔔 New escalation update.")
-
-# 🧠 AI Assistant Summary
-def summarize_escalations():
-    df = fetch_escalations()
-    total = len(df)
-    escalated = df[df['escalated'] == 'Yes'].shape[0]
-    return f"🔎 Summary: 📌Total cases: {total},🚨 Escalated: {escalated}."
-
-# 🔁 Local copy of fetch_escalations
+# 🔁 Fetch escalation data
 def fetch_escalations():
     conn = sqlite3.connect(DB_PATH)
     try:
@@ -236,7 +28,17 @@ def fetch_escalations():
         conn.close()
     return df
 
-# 🔁 Local copy of train_model
+# 🔄 Auto-Retraining Scheduler
+def schedule_weekly_retraining():
+    schedule.every().sunday.at("09:00").do(train_model)
+    threading.Thread(target=run_scheduler, daemon=True).start()
+
+def run_scheduler():
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
+
+# 🧠 Model Training
 def train_model():
     df = fetch_escalations()
     if df.shape[0] < 20:
@@ -253,10 +55,19 @@ def train_model():
     model.fit(X_train, y_train)
     return model
 
-# 📊 Escalation Rate by Category
+# 📊 Category Breakdown Chart
+def generate_category_chart():
+    df = fetch_escalations()
+    if df.empty or "category" not in df.columns:
+        st.warning("No category data available.")
+        return px.bar(title="No Data")
+    category_counts = df["category"].value_counts().reset_index()
+    category_counts.columns = ["Category", "Count"]
+    fig = px.bar(category_counts, x="Category", y="Count", title="Category Breakdown")
+    return fig
 
 def render_category_breakdown():
-    fig = generate_category_chart()  # Assuming this returns a Plotly figure
+    fig = generate_category_chart()
     fig.write_html("category_chart.html")
     with open("category_chart.html", "r", encoding="utf-8") as f:
         st.download_button(
@@ -266,48 +77,35 @@ def render_category_breakdown():
             mime="text/html"
         )
     st.plotly_chart(fig, use_container_width=True)
-        
-#⏰ SLA Breach Trend Over Time
 
+# ⏰ SLA Breach Trend
 def render_sla_trend():
     df = fetch_escalations()
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     df['Day'] = df['timestamp'].dt.date
-
-    # Define breach condition
     now = datetime.datetime.now()
     df["SLA_Breach_Flag"] = (
         (df["status"] != "Resolved") &
         (df["priority"] == "high") &
         ((now - df["timestamp"]) > datetime.timedelta(minutes=10))
     )
-
     breach_trend = df[df["SLA_Breach_Flag"]].groupby("Day").size().reset_index(name="Breaches")
-
     if breach_trend.empty:
         st.info("✅ No SLA breaches to show.")
         return
-
     st.subheader("⏰ SLA Breach Trend")
-    fig = px.line(
-        breach_trend,
-        x="Day",
-        y="Breaches",
-        title="SLA Breaches Over Time",
-        markers=True
-    )
+    fig = px.line(breach_trend, x="Day", y="Breaches", title="SLA Breaches Over Time", markers=True)
     st.plotly_chart(fig)
-
     st.download_button(
-        label="📥 Download SLA Trend (PNG)",
-        data=fig.to_image(format="png"),
-        file_name="sla_trend.png",
-        mime="image/png"
+        label="📥 Download SLA Trend (HTML)",
+        data=fig.to_html(),
+        file_name="sla_trend.html",
+        mime="text/html"
     )
 
-#def render_full_analytics_dashboard():
- #   st.subheader("📊 Category Breakdown")
-  #  render_category_breakdown()
-
-   # st.subheader("📈 SLA Trend")
-    # render_sla_trend()
+# 📊 Full Dashboard
+def render_full_analytics_dashboard():
+    st.subheader("📊 Category Breakdown")
+    render_category_breakdown()
+    st.subheader("📈 SLA Trend")
+    render_sla_trend()
