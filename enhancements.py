@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import sqlite3
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+import plotly.io as pio
+pio.kaleido.scope.default_format = "png"
 
 DB_PATH = "escalations.db"
 
