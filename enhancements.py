@@ -91,21 +91,19 @@ def generate_pdf_report():
         print(f"❌ PDF generation failed: {e}")
 
 # 🔥 SLA Heatmap Visualization
-import seaborn as sns
-import matplotlib.pyplot as plt
-import streamlit as st
-
 def render_sla_heatmap():
-    # Assume heatmap_data is already computed above
-    # Example: heatmap_data = df.pivot_table(...)
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    import streamlit as st
+
+    # Example computation — replace with your actual logic
+    heatmap_data = df.pivot_table(index="Team", columns="Day", values="SLA_Breach_Count", aggfunc="sum")
 
     if heatmap_data is None or heatmap_data.empty:
         st.warning("No SLA data available to render heatmap.")
         return
 
-    # Handle NaNs gracefully
     mask = heatmap_data.isnull()
-
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.heatmap(
         heatmap_data,
@@ -118,10 +116,7 @@ def render_sla_heatmap():
         fmt=".0f",
         cbar_kws={"label": "SLA Breach Count"}
     )
-
-    # Optional: style NaN cells
     ax.collections[0].cmap.set_bad('lightgrey')
-
     ax.set_title("SLA Breach Heatmap", fontsize=14)
     st.pyplot(fig)
 
