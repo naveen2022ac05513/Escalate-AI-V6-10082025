@@ -1,5 +1,3 @@
-# enhancements.py
-
 import pandas as pd
 import datetime
 import schedule
@@ -14,6 +12,9 @@ import matplotlib.pyplot as plt
 import sqlite3
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+import numpy as np
+from escalate_core import fetch_escalations
+from xhtml2pdf import pisa
 
 DB_PATH = "escalations.db"
 
@@ -48,11 +49,7 @@ def is_duplicate(issue_text, threshold=90):
             return True
     return False
 
-# PDF Generator
-
-from xhtml2pdf import pisa
-import pandas as pd
-
+# 📄 PDF Generator
 def generate_pdf_report():
     df = fetch_escalations()
     html = f"""
@@ -90,15 +87,7 @@ def generate_pdf_report():
     except Exception as e:
         print(f"❌ PDF generation failed: {e}")
 
-
 # 🔥 SLA Heatmap Visualization (Robust Version)
-import numpy as np
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import streamlit as st
-from escalate_core import fetch_escalations
-
 def render_sla_heatmap():
     df = fetch_escalations()
     if df.empty:
@@ -135,6 +124,11 @@ def render_sla_heatmap():
         or np.count_nonzero(heatmap_data.values) == 0
     ):
         st.warning("⚠️ SLA heatmap skipped: no meaningful data to render.")
+        return
+
+    # 🔒 Extra safety: avoid seaborn crash if all NaN or zero
+    if heatmap_data.isnull().all().all() or (heatmap_data.to_numpy() == 0).all():
+        st.warning("⚠️ SLA heatmap skipped: no valid data points to render.")
         return
 
     # ✅ Safe rendering
