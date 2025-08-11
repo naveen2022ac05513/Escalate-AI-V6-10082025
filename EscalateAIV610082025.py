@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 from enhancements import (
     schedule_weekly_retraining,
     render_analytics,
-    render_full_analytics_dashboard,      # ✅ New
+    render_category_breakdown,      # ✅ New
     render_sla_trend,               # ✅ New
     show_feature_importance,
     is_duplicate,
