@@ -91,14 +91,38 @@ def generate_pdf_report():
         print(f"❌ PDF generation failed: {e}")
 
 # 🔥 SLA Heatmap Visualization
+import seaborn as sns
+import matplotlib.pyplot as plt
+import streamlit as st
+
 def render_sla_heatmap():
-    df = fetch_escalations()
-    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    df['hour'] = df['timestamp'].dt.hour
-    heatmap_data = df.pivot_table(index='category', columns='hour', values='id', aggfunc='count').fillna(0)
-    st.subheader("🔥 SLA Breach Heatmap")
-    fig, ax = plt.subplots()
-    sns.heatmap(heatmap_data, ax=ax, cmap="Reds")
+    # Assume heatmap_data is already computed above
+    # Example: heatmap_data = df.pivot_table(...)
+
+    if heatmap_data is None or heatmap_data.empty:
+        st.warning("No SLA data available to render heatmap.")
+        return
+
+    # Handle NaNs gracefully
+    mask = heatmap_data.isnull()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.heatmap(
+        heatmap_data,
+        ax=ax,
+        cmap="Reds",
+        mask=mask,
+        linewidths=0.5,
+        linecolor='white',
+        annot=True,
+        fmt=".0f",
+        cbar_kws={"label": "SLA Breach Count"}
+    )
+
+    # Optional: style NaN cells
+    ax.collections[0].cmap.set_bad('lightgrey')
+
+    ax.set_title("SLA Breach Heatmap", fontsize=14)
     st.pyplot(fig)
 
 # 🌙 Dark Mode Toggle
