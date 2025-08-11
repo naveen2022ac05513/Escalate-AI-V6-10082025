@@ -93,12 +93,20 @@ def generate_pdf_report():
 
 # 🔥 SLA Heatmap Visualization (Robust Version)
 
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import streamlit as st
+from escalate_core import fetch_escalations  # Adjust if your fetch function is elsewhere
+
 def render_sla_heatmap():
     df = fetch_escalations()
     if df.empty:
         st.warning("⚠️ No escalation data available for SLA heatmap.")
         return
 
+    # Ensure timestamp and category are usable
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     df = df.dropna(subset=['timestamp', 'category'])
 
@@ -106,17 +114,33 @@ def render_sla_heatmap():
         st.warning("⚠️ Missing required fields for SLA heatmap.")
         return
 
+    # Extract hour and pivot for heatmap
     df['hour'] = df['timestamp'].dt.hour
-    heatmap_data = df.pivot_table(index='category', columns='hour', values='id', aggfunc='count').fillna(0)
+    heatmap_data = df.pivot_table(
+        index='category',
+        columns='hour',
+        values='id',
+        aggfunc='count'
+    ).fillna(0)
 
-    if heatmap_data.empty or not np.isfinite(heatmap_data.values).any():
+    # Final validation before plotting
+    if (
+        heatmap_data.empty
+        or heatmap_data.shape[0] == 0
+        or heatmap_data.shape[1] == 0
+        or not np.any(np.isfinite(heatmap_data.values))
+    ):
         st.warning("⚠️ SLA heatmap skipped: no valid numeric data to render.")
         return
 
+    # Render heatmap safely
     st.subheader("🔥 SLA Breach Heatmap")
-    fig, ax = plt.subplots()
-    sns.heatmap(heatmap_data, ax=ax, cmap="Reds")
-    st.pyplot(fig)
+    try:
+        fig, ax = plt.subplots()
+        sns.heatmap(heatmap_data, ax=ax, cmap="Reds")
+        st.pyplot(fig)
+    except ValueError as e:
+        st.error(f"❌ Heatmap rendering failed: {str(e)}")
 
 # 🌙 Dark Mode Toggle
 def apply_dark_mode():
