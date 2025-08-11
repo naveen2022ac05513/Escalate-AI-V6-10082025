@@ -93,13 +93,6 @@ def generate_pdf_report():
 
 # 🔥 SLA Heatmap Visualization (Robust Version)
 
-import numpy as np
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import streamlit as st
-from escalate_core import fetch_escalations
-
 def render_sla_heatmap():
     df = fetch_escalations()
     if df.empty:
@@ -127,30 +120,17 @@ def render_sla_heatmap():
         st.warning(f"⚠️ Heatmap data conversion failed: {e}")
         return
 
-    # 🔍 Diagnostic summary
-    total_values = heatmap_data.size
-    finite_values = np.isfinite(heatmap_data.values).sum()
-    nonzero_values = np.count_nonzero(heatmap_data.values)
-
-    st.sidebar.markdown("### 🔍 Heatmap Diagnostics")
-    st.sidebar.write(f"Shape: {heatmap_data.shape}")
-    st.sidebar.write(f"Total values: {total_values}")
-    st.sidebar.write(f"Finite values: {finite_values}")
-    st.sidebar.write(f"Non-zero values: {nonzero_values}")
-    st.sidebar.dataframe(heatmap_data)
-
-    # ✅ Final validation
-    if (
-        heatmap_data.empty
-        or heatmap_data.shape[0] == 0
-        or heatmap_data.shape[1] == 0
-        or finite_values == 0
-        or nonzero_values == 0
-    ):
-        st.warning("⚠️ SLA heatmap skipped: no meaningful data to render.")
+    # ✅ Final safety check: test np.nanmin directly
+    try:
+        _ = np.nanmin(heatmap_data.values)
+    except Exception:
+        st.warning("⚠️ SLA heatmap skipped: matrix contains only NaNs or invalid values.")
         return
 
-    # ✅ Safe rendering
+    if heatmap_data.empty or not np.isfinite(heatmap_data.values).any():
+        st.warning("⚠️ SLA heatmap skipped: no valid numeric data to render.")
+        return
+
     st.subheader("🔥 SLA Breach Heatmap")
     try:
         fig, ax = plt.subplots()
