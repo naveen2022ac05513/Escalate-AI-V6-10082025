@@ -1197,3 +1197,6 @@ with tabs[3]:
     model = train_model()
     if model:
         show_feature_importance(model)
+
+render_category_breakdown()
+render_sla_trend()
