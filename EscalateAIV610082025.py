@@ -670,26 +670,6 @@ if uploaded_file:
 
         st.sidebar.success(f"🎯 {processed_count} rows processed successfully.")
         
-# 📤 Download Section
-st.sidebar.markdown("### 📤 Downloads")
-col1, col2 = st.sidebar.columns(2)
-with col1:
-    if st.button("⬇️ All Complaints"):
-        csv = fetch_escalations().to_csv(index=False)
-        st.download_button("Download CSV", csv, file_name="escalations.csv", mime="text/csv")
-with col2:
-    if st.button("⬇️ Escalated Only"):
-        df_esc = fetch_escalations()
-        df_esc = df_esc[df_esc["escalated"] == "Yes"]
-        if df_esc.empty:
-            st.info("No escalated cases.")
-        else:
-            with pd.ExcelWriter("escalated_cases.xlsx") as writer:
-                df_esc.to_excel(writer, index=False)
-            with open("escalated_cases.xlsx", "rb") as f:
-                st.download_button("Download Excel", f, file_name="escalated_cases.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-
-
 # ⏰ SLA Monitoring
 st.sidebar.markdown("### ⏰ SLA Monitor")
 if st.sidebar.button("Trigger SLA Check"):
@@ -831,7 +811,26 @@ def send_alert(message, via="email", recipient=None):
                 print(f"❌ Teams alert failed with status {response.status_code}: {response.text}")
         except Exception as e:
             print(f"❌ Teams sending failed: {e}")
-            
+
+# 📤 Download Section
+st.sidebar.markdown("### 📤 Downloads")
+col1, col2 = st.sidebar.columns(2)
+with col1:
+    if st.button("⬇️ All Complaints"):
+        csv = fetch_escalations().to_csv(index=False)
+        st.download_button("Download CSV", csv, file_name="escalations.csv", mime="text/csv")
+with col2:
+    if st.button("⬇️ Escalated Only"):
+        df_esc = fetch_escalations()
+        df_esc = df_esc[df_esc["escalated"] == "Yes"]
+        if df_esc.empty:
+            st.info("No escalated cases.")
+        else:
+            with pd.ExcelWriter("escalated_cases.xlsx") as writer:
+                df_esc.to_excel(writer, index=False)
+            with open("escalated_cases.xlsx", "rb") as f:
+                st.download_button("Download Excel", f, file_name="escalated_cases.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 # --- Main Tabs ---
 tabs = st.tabs(["🗃️ All", "🚩 Escalated", "🔁 Feedback & Retraining", "📊 Analytics"])
 
