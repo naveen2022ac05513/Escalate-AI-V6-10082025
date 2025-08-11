@@ -305,9 +305,9 @@ def render_sla_trend():
         mime="image/png"
     )
 
-def render_full_analytics_dashboard():
-    st.subheader("📊 Category Breakdown")
-    render_category_breakdown()
+#def render_full_analytics_dashboard():
+ #   st.subheader("📊 Category Breakdown")
+  #  render_category_breakdown()
 
-    st.subheader("📈 SLA Trend")
-    render_sla_trend()
+   # st.subheader("📈 SLA Trend")
+    # render_sla_trend()
