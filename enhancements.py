@@ -92,6 +92,7 @@ def generate_pdf_report():
 
 
 # 🔥 SLA Heatmap Visualization (Robust Version)
+
 def render_sla_heatmap():
     df = fetch_escalations()
     if df.empty:
@@ -108,8 +109,8 @@ def render_sla_heatmap():
     df['hour'] = df['timestamp'].dt.hour
     heatmap_data = df.pivot_table(index='category', columns='hour', values='id', aggfunc='count').fillna(0)
 
-    if heatmap_data.empty or heatmap_data.isnull().all().all():
-        st.warning("⚠️ No valid data to render SLA heatmap.")
+    if heatmap_data.empty or not np.isfinite(heatmap_data.values).any():
+        st.warning("⚠️ SLA heatmap skipped: no valid numeric data to render.")
         return
 
     st.subheader("🔥 SLA Breach Heatmap")
