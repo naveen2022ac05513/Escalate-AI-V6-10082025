@@ -1195,7 +1195,7 @@ with tabs[3]:
     # 🔥 SLA Heatmap
     try:
         render_sla_heatmap()
-        except Exception as e:
+    except Exception as e:
         st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
     
     # 🧠 Feature Importance (optional)
