@@ -31,7 +31,9 @@ from enhancements import (
     apply_dark_mode,
     show_filter_summary,
     get_escalation_template,
-    summarize_escalations
+    summarize_escalations,
+    fetch_escalations,
+    train_model
 )
 # Load environment variables from .env file (for credentials & config)
 load_dotenv()
