@@ -276,14 +276,16 @@ def render_category_breakdown():
     fig.update_traces(textposition='outside')
     st.plotly_chart(fig)
 
-    # Download button
-    st.download_button(
-        label="📥 Download Category Chart (PNG)",
-        data=fig.to_image(format="png"),
-        file_name="category_breakdown.png",
-        mime="image/png"
-    )
-
+    # Save and serve image
+    fig.write_image("category_chart.png")
+    with open("category_chart.png", "rb") as f:
+        st.download_button(
+            label="📥 Download Category Chart (PNG)",
+            data=f.read(),
+            file_name="category_chart.png",
+            mime="image/png"
+        )
+        
 #⏰ SLA Breach Trend Over Time
 
 def render_sla_trend():
