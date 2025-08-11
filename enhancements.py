@@ -132,6 +132,7 @@ def get_escalation_template(severity):
     return TEMPLATES.get(severity.lower(), "🔔 New escalation update.")
 
 # 🧠 AI Assistant Summary
+
 def summarize_escalations():
     df = fetch_escalations()
     total = len(df)
