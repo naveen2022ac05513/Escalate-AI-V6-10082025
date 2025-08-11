@@ -708,14 +708,17 @@ if not breaches.empty:
 #show_filter_summary(status, severity, sentiment, category)
 
 # 🔍 Filters
+
 st.sidebar.markdown("### 🔍 Escalation Filters")
+#show_filter_summary(status, severity, sentiment, category)
+view = st.sidebar.radio("Escalation View", ["All", "Escalated", "Non-Escalated"])
+
 df = fetch_escalations()
 status = st.sidebar.selectbox("Status", ["All", "Resolved", "Unresolved"])
 severity = st.sidebar.selectbox("Severity", ["All", "Low", "Medium", "High"])
 sentiment = st.sidebar.selectbox("Sentiment", ["All", "Positive", "Neutral", "Negative"])
 category = st.sidebar.selectbox("Category", ["All", "Bug", "Feature Request", "Other"])
-#show_filter_summary(status, severity, sentiment, category)
-view = st.sidebar.radio("Escalation View", ["All", "Escalated", "Non-Escalated"])
+
 
 filtered_df = df.copy()
 if status != "All":
