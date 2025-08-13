@@ -554,30 +554,6 @@ def colored_text(text, color):
 # --- STREAMLIT UI ---
 # -------------------
 
-# EscalateAIV610082025.py
-
-import streamlit as st
-from enhancement_dashboard import show_enhancement_dashboard
-# Import other modules like heatmap_view, analytics_view, etc.
-
-# ✅ 1. Set page config
-st.set_page_config(page_title="Escalation Management", layout="wide")
-
-# ✅ 2. Sidebar navigation
-st.sidebar.title("🔍 Navigation")
-page = st.sidebar.radio("Go to", [
-    "📊 Main Dashboard",
-    "🔥 SLA Heatmap",
-    "🧠 Enhancements",
-    "📈 Analytics",
-    "⚙️ Admin Tools"
-])
-
-# ✅ 3. Route to selected view
-if page == "📊 Main Dashboard":
-    st.title("📊 Main Dashboard")
-    # Your main dashboard logic here
-
 # Ensure DB schema exists before starting
 ensure_schema()
 
@@ -1245,19 +1221,3 @@ with tabs[3]:
     model = train_model()
     if model:
         show_feature_importance(model)
-
-
-elif page == "🔥 SLA Heatmap":
-    from heatmap_view import show_heatmap
-    show_heatmap()
-
-elif page == "🧠 Enhancements":
-    show_enhancement_dashboard()
-
-elif page == "📈 Analytics":
-    from analytics_view import show_analytics
-    show_analytics()
-
-elif page == "⚙️ Admin Tools":
-    from admin_tools import show_admin_panel
-    show_admin_panel()
