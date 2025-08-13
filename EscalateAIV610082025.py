@@ -578,673 +578,673 @@ if page == "📊 Main Dashboard":
     st.title("📊 Main Dashboard")
     # Your main dashboard logic here
 
-# Ensure DB schema exists before starting
-ensure_schema()
-
-st.set_page_config(layout="wide")
-
-#st.title("🚨 EscalateAI – Customer Escalation Management System")
-st.markdown(
-    """
-    <style>
-    /* Your CSS from above */
-    </style>
-    <header>
-        <div>
-            <h1 style="margin: 0; padding-left: 20px;">🚨 EscalateAI – AI Based Customer Escalation Prediction & Management Tool </h1>
-        </div>
-    </header>
-    """,
-    unsafe_allow_html=True
-)
-
-
-import streamlit as st
-import datetime
-import pandas as pd
-
-st.sidebar.markdown("""
-    <style>
-    .sidebar-title h2 {
-        font-size: 20px;
-        margin-bottom: 4px;
-        font-weight: 600;
-        color: #2c3e50;  /* Deep Slate */
-        text-align: center;
-    }
-    .sidebar-subtext {
-        font-size: 13px;
-        color: #7f8c8d;  /* Cool Gray */
-        text-align: center;
-        margin-bottom: 10px;
-    }
-    .sidebar-content {
-        background-color: #ecf0f1; /* Soft Light Gray */
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
-    }
-    .sidebar-content label, .sidebar-content select, .sidebar-content input {
-        font-size: 12px;
-        color: #34495e;
-    }
-    </style>
-    <div class="sidebar-title">
-        <h2>⚙️ EscalateAI Controls</h2>
-    </div>
-    <div class="sidebar-subtext">
-        Manage, monitor & respond with agility.
-    </div>
-    <div class="sidebar-content">
-        <!-- 👇 Place your Streamlit widgets here -->
-        <!-- Example:
-        st.selectbox("Choose escalation level", ["Low", "Medium", "High"])
-        -->
-    </div>
-""", unsafe_allow_html=True)
-
-# 📥 Upload Section
-
-import pandas as pd
-import streamlit as st
-
-import pandas as pd
-import streamlit as st
-
-# 📩 Email Fetching
-st.sidebar.markdown("### 📩 Email Integration")
-if st.sidebar.button("Fetch Emails"):
-    emails = parse_emails()
-    for e in emails:
-        issue, customer = e["issue"], e["customer"]
-        sentiment, urgency, severity, criticality, category, escalation_flag = analyze_issue(issue)
-        insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag)
-    st.sidebar.success(f"✅ {len(emails)} emails processed")
-    #st.info(f"Fetched {len(messages[0].split())} unseen message(s)")
-
-# === 1. Upload Excel File from Sidebar ===
-st.sidebar.header("📁 Upload Escalation Sheet")
-uploaded_file = st.sidebar.file_uploader("Choose an Excel file", type=["xlsx"])
-
-if uploaded_file:
-    try:
-        df_excel = pd.read_excel(uploaded_file)
-        st.sidebar.success("✅ Excel file loaded successfully.")
-    except Exception as e:
-        st.sidebar.error(f"❌ Failed to read Excel file: {e}")
-        st.stop()
-
-    # === 2. Validate Required Columns ===
-    required_columns = ["Customer", "Issue"]
-    missing_cols = [col for col in required_columns if col not in df_excel.columns]
-    if missing_cols:
-        st.sidebar.error(f"Missing required columns: {', '.join(missing_cols)}")
-        st.stop()
-
-    # === 3. Add Analyze Button ===
-    if st.sidebar.button("🔍 Analyze & Insert"):
-        processed_count = 0
-        for idx, row in df_excel.iterrows():
-            issue = str(row.get("Issue", "")).strip()
-            customer = str(row.get("Customer", "Unknown")).strip()
-            if not issue:
-                st.warning(f"⚠️ Row {idx + 1} skipped: empty issue text.")
-                continue
-
-            issue_summary = summarize_issue_text(issue)
-            sentiment, urgency, severity, criticality, category, escalation_flag = analyze_issue(issue)
-
-            insert_escalation(
-                customer,
-                issue_summary,
-                sentiment,
-                urgency,
-                severity,
-                criticality,
-                category,
-                escalation_flag
-            )
-            processed_count += 1
-
-        st.sidebar.success(f"🎯 {processed_count} rows processed successfully.")
-        
-# ⏰ SLA Monitoring
-st.sidebar.markdown("### ⏰ SLA Monitor")
-if st.sidebar.button("Trigger SLA Check"):
-    df = fetch_escalations()
-    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    breaches = df[(df['status'] != 'Resolved') & (df['priority'] == 'high') &
-                  ((datetime.datetime.now() - df['timestamp']) > datetime.timedelta(minutes=10))]
-    if not breaches.empty:
-        alert_msg = f"🚨 SLA breach for {len(breaches)} case(s)!"
-        send_alert(alert_msg, via="teams")
-        send_alert(alert_msg, via="email")
-        st.sidebar.success("✅ Alerts sent")
-    else:
-        st.sidebar.info("All SLAs healthy")
-
-# 🚨 SLA Banner
-df_all = fetch_escalations()
-df_all['timestamp'] = pd.to_datetime(df_all['timestamp'], errors='coerce')
-breaches = df_all[(df_all['status'] != 'Resolved') & (df_all['priority'] == 'high') &
-                  ((datetime.datetime.now() - df_all['timestamp']) > datetime.timedelta(minutes=10))]
-if not breaches.empty:
-    st.sidebar.markdown(
-        f"<div style='background:#dc3545;padding:8px;border-radius:5px;color:white;text-align:center;'>"
-        f"<strong>🚨 {len(breaches)} SLA Breach(s) Detected</strong></div>",
+    # Ensure DB schema exists before starting
+    ensure_schema()
+    
+    st.set_page_config(layout="wide")
+    
+    #st.title("🚨 EscalateAI – Customer Escalation Management System")
+    st.markdown(
+        """
+        <style>
+        /* Your CSS from above */
+        </style>
+        <header>
+            <div>
+                <h1 style="margin: 0; padding-left: 20px;">🚨 EscalateAI – AI Based Customer Escalation Prediction & Management Tool </h1>
+            </div>
+        </header>
+        """,
         unsafe_allow_html=True
     )
-
-#def get_filter_values():
-#    status = st.sidebar.selectbox("Status", [...])
-#    severity = st.sidebar.selectbox("Severity", [...])
-#    sentiment = st.sidebar.selectbox("Sentiment", [...])
-#    category = st.sidebar.selectbox("Category", [...])
-#    return status, severity, sentiment, category
-
-#status, severity, sentiment, category = get_filter_values()
-#show_filter_summary(status, severity, sentiment, category)
-
-# 🔍 Filters
-
-st.sidebar.markdown("### 🔍 Escalation Filters")
-#show_filter_summary(status, severity, sentiment, category)
-view = st.sidebar.radio("Escalation View", ["All", "Escalated", "Non-Escalated"])
-
-df = fetch_escalations()
-status = st.sidebar.selectbox("Status", ["All", "Resolved", "Unresolved"])
-severity = st.sidebar.selectbox("Severity", ["All", "Low", "Medium", "High"])
-sentiment = st.sidebar.selectbox("Sentiment", ["All", "Positive", "Neutral", "Negative"])
-category = st.sidebar.selectbox("Category", ["All", "Bug", "Feature Request", "Other"])
-
-
-filtered_df = df.copy()
-if status != "All":
-    filtered_df = filtered_df[filtered_df["status"] == status]
-if severity != "All":
-    filtered_df = filtered_df[filtered_df["severity"] == severity]
-if sentiment != "All":
-    filtered_df = filtered_df[filtered_df["sentiment"] == sentiment]
-if category != "All":
-    filtered_df = filtered_df[filtered_df["category"] == category]
-if view == "Escalated":
-    filtered_df = filtered_df[filtered_df["escalated"] == "Yes"]
-elif view == "Non-Escalated":
-    filtered_df = filtered_df[filtered_df["escalated"] != "Yes"]
-
-# 🔔 Manual Alerts
-st.sidebar.markdown("### 🔔 Manual Notifications")
-msg = st.sidebar.text_area("Compose Alert", "🚨 Test alert from EscalateAI")
-if st.sidebar.button("Send MS Teams"):
-    send_alert(msg, via="teams")
-    st.sidebar.success("✅ MS Teams alert sent")
-if st.sidebar.button("Send Email"):
-    send_alert(msg, via="email")
-    st.sidebar.success("✅ Email alert sent")
-
-# 📲 WhatsApp Notification
-st.sidebar.markdown("### 📲 WhatsApp Alerts")
-
-status_check = st.sidebar.selectbox("Case Status", ["Open", "In Progress", "Resolved"])
-
-if status_check == "Resolved":
-    df_resolved = fetch_escalations()
-    df_resolved = df_resolved[df_resolved["status"] == "Resolved"]
-
-    if not df_resolved.empty:
-        escalation_id = st.sidebar.selectbox(
-            "🔢 Select Resolved Escalation ID",
-            df_resolved["id"].tolist()
-        )
-
-        phone = st.sidebar.text_input("📞 Phone Number", "+91", help="Include country code (e.g., +91)")
-        msg = st.sidebar.text_area("📨 Message", f"Your issue with ID {escalation_id} has been resolved. Thank you!")
-
-        if st.sidebar.button("Send WhatsApp"):
-            # send_whatsapp_message(phone, msg)
-            st.sidebar.success(f"✅ WhatsApp sent to {phone} for Escalation ID {escalation_id}")
-    else:
-        st.sidebar.warning("No resolved escalations found.")
-else:
-    st.sidebar.info("WhatsApp alerts are only available for 'Resolved' cases.")
-
-
-import os
-import smtplib
-import requests
-from email.message import EmailMessage
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
-
-# ENV values
-EMAIL_USER = os.getenv("EMAIL_USER")
-EMAIL_PASS = os.getenv("EMAIL_PASS")
-EMAIL_SMTP_SERVER = os.getenv("EMAIL_SMTP_SERVER")
-EMAIL_SMTP_PORT = int(os.getenv("EMAIL_SMTP_PORT"))
-MS_TEAMS_WEBHOOK_URL = os.getenv("MS_TEAMS_WEBHOOK_URL")
-
-def send_alert(message, via="email", recipient=None):
-    if via == "email":
+    
+    
+    import streamlit as st
+    import datetime
+    import pandas as pd
+    
+    st.sidebar.markdown("""
+        <style>
+        .sidebar-title h2 {
+            font-size: 20px;
+            margin-bottom: 4px;
+            font-weight: 600;
+            color: #2c3e50;  /* Deep Slate */
+            text-align: center;
+        }
+        .sidebar-subtext {
+            font-size: 13px;
+            color: #7f8c8d;  /* Cool Gray */
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .sidebar-content {
+            background-color: #ecf0f1; /* Soft Light Gray */
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+        }
+        .sidebar-content label, .sidebar-content select, .sidebar-content input {
+            font-size: 12px;
+            color: #34495e;
+        }
+        </style>
+        <div class="sidebar-title">
+            <h2>⚙️ EscalateAI Controls</h2>
+        </div>
+        <div class="sidebar-subtext">
+            Manage, monitor & respond with agility.
+        </div>
+        <div class="sidebar-content">
+            <!-- 👇 Place your Streamlit widgets here -->
+            <!-- Example:
+            st.selectbox("Choose escalation level", ["Low", "Medium", "High"])
+            -->
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # 📥 Upload Section
+    
+    import pandas as pd
+    import streamlit as st
+    
+    import pandas as pd
+    import streamlit as st
+    
+    # 📩 Email Fetching
+    st.sidebar.markdown("### 📩 Email Integration")
+    if st.sidebar.button("Fetch Emails"):
+        emails = parse_emails()
+        for e in emails:
+            issue, customer = e["issue"], e["customer"]
+            sentiment, urgency, severity, criticality, category, escalation_flag = analyze_issue(issue)
+            insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag)
+        st.sidebar.success(f"✅ {len(emails)} emails processed")
+        #st.info(f"Fetched {len(messages[0].split())} unseen message(s)")
+    
+    # === 1. Upload Excel File from Sidebar ===
+    st.sidebar.header("📁 Upload Escalation Sheet")
+    uploaded_file = st.sidebar.file_uploader("Choose an Excel file", type=["xlsx"])
+    
+    if uploaded_file:
         try:
-            msg = EmailMessage()
-            msg['Subject'] = "🔔 Escalation Update Notification"
+            df_excel = pd.read_excel(uploaded_file)
+            st.sidebar.success("✅ Excel file loaded successfully.")
+        except Exception as e:
+            st.sidebar.error(f"❌ Failed to read Excel file: {e}")
+            st.stop()
+    
+        # === 2. Validate Required Columns ===
+        required_columns = ["Customer", "Issue"]
+        missing_cols = [col for col in required_columns if col not in df_excel.columns]
+        if missing_cols:
+            st.sidebar.error(f"Missing required columns: {', '.join(missing_cols)}")
+            st.stop()
+    
+        # === 3. Add Analyze Button ===
+        if st.sidebar.button("🔍 Analyze & Insert"):
+            processed_count = 0
+            for idx, row in df_excel.iterrows():
+                issue = str(row.get("Issue", "")).strip()
+                customer = str(row.get("Customer", "Unknown")).strip()
+                if not issue:
+                    st.warning(f"⚠️ Row {idx + 1} skipped: empty issue text.")
+                    continue
+    
+                issue_summary = summarize_issue_text(issue)
+                sentiment, urgency, severity, criticality, category, escalation_flag = analyze_issue(issue)
+    
+                insert_escalation(
+                    customer,
+                    issue_summary,
+                    sentiment,
+                    urgency,
+                    severity,
+                    criticality,
+                    category,
+                    escalation_flag
+                )
+                processed_count += 1
+    
+            st.sidebar.success(f"🎯 {processed_count} rows processed successfully.")
+            
+    # ⏰ SLA Monitoring
+    st.sidebar.markdown("### ⏰ SLA Monitor")
+    if st.sidebar.button("Trigger SLA Check"):
+        df = fetch_escalations()
+        df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+        breaches = df[(df['status'] != 'Resolved') & (df['priority'] == 'high') &
+                      ((datetime.datetime.now() - df['timestamp']) > datetime.timedelta(minutes=10))]
+        if not breaches.empty:
+            alert_msg = f"🚨 SLA breach for {len(breaches)} case(s)!"
+            send_alert(alert_msg, via="teams")
+            send_alert(alert_msg, via="email")
+            st.sidebar.success("✅ Alerts sent")
+        else:
+            st.sidebar.info("All SLAs healthy")
+    
+    # 🚨 SLA Banner
+    df_all = fetch_escalations()
+    df_all['timestamp'] = pd.to_datetime(df_all['timestamp'], errors='coerce')
+    breaches = df_all[(df_all['status'] != 'Resolved') & (df_all['priority'] == 'high') &
+                      ((datetime.datetime.now() - df_all['timestamp']) > datetime.timedelta(minutes=10))]
+    if not breaches.empty:
+        st.sidebar.markdown(
+            f"<div style='background:#dc3545;padding:8px;border-radius:5px;color:white;text-align:center;'>"
+            f"<strong>🚨 {len(breaches)} SLA Breach(s) Detected</strong></div>",
+            unsafe_allow_html=True
+        )
+    
+    #def get_filter_values():
+    #    status = st.sidebar.selectbox("Status", [...])
+    #    severity = st.sidebar.selectbox("Severity", [...])
+    #    sentiment = st.sidebar.selectbox("Sentiment", [...])
+    #    category = st.sidebar.selectbox("Category", [...])
+    #    return status, severity, sentiment, category
+    
+    #status, severity, sentiment, category = get_filter_values()
+    #show_filter_summary(status, severity, sentiment, category)
+    
+    # 🔍 Filters
+    
+    st.sidebar.markdown("### 🔍 Escalation Filters")
+    #show_filter_summary(status, severity, sentiment, category)
+    view = st.sidebar.radio("Escalation View", ["All", "Escalated", "Non-Escalated"])
+    
+    df = fetch_escalations()
+    status = st.sidebar.selectbox("Status", ["All", "Resolved", "Unresolved"])
+    severity = st.sidebar.selectbox("Severity", ["All", "Low", "Medium", "High"])
+    sentiment = st.sidebar.selectbox("Sentiment", ["All", "Positive", "Neutral", "Negative"])
+    category = st.sidebar.selectbox("Category", ["All", "Bug", "Feature Request", "Other"])
+    
+    
+    filtered_df = df.copy()
+    if status != "All":
+        filtered_df = filtered_df[filtered_df["status"] == status]
+    if severity != "All":
+        filtered_df = filtered_df[filtered_df["severity"] == severity]
+    if sentiment != "All":
+        filtered_df = filtered_df[filtered_df["sentiment"] == sentiment]
+    if category != "All":
+        filtered_df = filtered_df[filtered_df["category"] == category]
+    if view == "Escalated":
+        filtered_df = filtered_df[filtered_df["escalated"] == "Yes"]
+    elif view == "Non-Escalated":
+        filtered_df = filtered_df[filtered_df["escalated"] != "Yes"]
+    
+    # 🔔 Manual Alerts
+    st.sidebar.markdown("### 🔔 Manual Notifications")
+    msg = st.sidebar.text_area("Compose Alert", "🚨 Test alert from EscalateAI")
+    if st.sidebar.button("Send MS Teams"):
+        send_alert(msg, via="teams")
+        st.sidebar.success("✅ MS Teams alert sent")
+    if st.sidebar.button("Send Email"):
+        send_alert(msg, via="email")
+        st.sidebar.success("✅ Email alert sent")
+    
+    # 📲 WhatsApp Notification
+    st.sidebar.markdown("### 📲 WhatsApp Alerts")
+    
+    status_check = st.sidebar.selectbox("Case Status", ["Open", "In Progress", "Resolved"])
+    
+    if status_check == "Resolved":
+        df_resolved = fetch_escalations()
+        df_resolved = df_resolved[df_resolved["status"] == "Resolved"]
+    
+        if not df_resolved.empty:
+            escalation_id = st.sidebar.selectbox(
+                "🔢 Select Resolved Escalation ID",
+                df_resolved["id"].tolist()
+            )
+    
+            phone = st.sidebar.text_input("📞 Phone Number", "+91", help="Include country code (e.g., +91)")
+            msg = st.sidebar.text_area("📨 Message", f"Your issue with ID {escalation_id} has been resolved. Thank you!")
+    
+            if st.sidebar.button("Send WhatsApp"):
+                # send_whatsapp_message(phone, msg)
+                st.sidebar.success(f"✅ WhatsApp sent to {phone} for Escalation ID {escalation_id}")
+        else:
+            st.sidebar.warning("No resolved escalations found.")
+    else:
+        st.sidebar.info("WhatsApp alerts are only available for 'Resolved' cases.")
+    
+    
+    import os
+    import smtplib
+    import requests
+    from email.message import EmailMessage
+    from dotenv import load_dotenv
+    
+    # Load environment variables
+    load_dotenv()
+    
+    # ENV values
+    EMAIL_USER = os.getenv("EMAIL_USER")
+    EMAIL_PASS = os.getenv("EMAIL_PASS")
+    EMAIL_SMTP_SERVER = os.getenv("EMAIL_SMTP_SERVER")
+    EMAIL_SMTP_PORT = int(os.getenv("EMAIL_SMTP_PORT"))
+    MS_TEAMS_WEBHOOK_URL = os.getenv("MS_TEAMS_WEBHOOK_URL")
+    
+    def send_alert(message, via="email", recipient=None):
+        if via == "email":
+            try:
+                msg = EmailMessage()
+                msg['Subject'] = "🔔 Escalation Update Notification"
+                msg['From'] = EMAIL_USER
+                msg['To'] = recipient if recipient else EMAIL_USER  # fallback to sender
+                msg.set_content(message)
+    
+                with smtplib.SMTP(EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT) as server:
+                    server.starttls()
+                    server.login(EMAIL_USER, EMAIL_PASS)
+                    server.send_message(msg)
+                print(f"✅ Email alert sent to {msg['To']}")
+            except Exception as e:
+                print(f"❌ Email sending failed: {e}")
+    
+        elif via == "teams":
+            try:
+                payload = {"text": message}
+                response = requests.post(MS_TEAMS_WEBHOOK_URL, json=payload)
+                if response.status_code == 200:
+                    print("✅ Teams alert sent successfully")
+                else:
+                    print(f"❌ Teams alert failed with status {response.status_code}: {response.text}")
+            except Exception as e:
+                print(f"❌ Teams sending failed: {e}")
+    
+    # 📤 Download Section
+    st.sidebar.markdown("### 📤 Downloads")
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("⬇️ All Complaints"):
+            csv = fetch_escalations().to_csv(index=False)
+            st.download_button("Download CSV", csv, file_name="escalations.csv", mime="text/csv")
+    with col2:
+        if st.button("⬇️ Escalated Only"):
+            df_esc = fetch_escalations()
+            df_esc = df_esc[df_esc["escalated"] == "Yes"]
+            if df_esc.empty:
+                st.info("No escalated cases.")
+            else:
+                with pd.ExcelWriter("escalated_cases.xlsx") as writer:
+                    df_esc.to_excel(writer, index=False)
+                with open("escalated_cases.xlsx", "rb") as f:
+                    st.download_button("Download Excel", f, file_name="escalated_cases.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    
+    # --- Main Tabs ---
+    tabs = st.tabs(["🗃️ All", "🚩 Escalated", "🔁 Feedback & Retraining", "📊 Analytics"])
+    
+    import datetime
+    import time
+    import pandas as pd
+    import streamlit as st
+    
+    # Sidebar controls
+    auto_refresh = st.sidebar.checkbox("🔄 Auto Refresh", value=False)
+    refresh_interval = st.sidebar.slider("Refresh Interval (sec)", 10, 60, 30)
+    compact_mode = st.sidebar.checkbox("📱 Compact Mode", value=False)
+    if auto_refresh:
+        time.sleep(refresh_interval)
+        st.rerun()
+    if st.sidebar.button("🔁 Manual Refresh"):
+       st.rerun()
+    
+    # Kanban board tab
+    with tabs[0]:
+        st.subheader("📊 Escalation Kanban Board")
+        df = filtered_df.copy()
+        df["status"] = df["status"].str.strip().str.title()
+        counts = df['status'].value_counts()
+        st.markdown(f"**Open:** {counts.get('Open', 0)} | **In Progress:** {counts.get('In Progress', 0)} | **Resolved:** {counts.get('Resolved', 0)}")
+    
+        col1, col2, col3 = st.columns(3)
+        status_columns = {
+            "Open": col1,
+            "In Progress": col2,
+            "Resolved": col3
+        }
+    
+        for status, col in status_columns.items():
+            with col:
+                col.markdown(
+                    f"<h3 style='background-color:{STATUS_COLORS[status]};color:white;padding:8px;border-radius:5px;text-align:center;'>{status}</h3>",
+                    unsafe_allow_html=True
+                )
+                bucket = df[df["status"] == status]
+                for _, row in bucket.iterrows():
+                    try:
+                        flag = "🚩" if row.get('escalated', '').lower() == 'yes' else ""
+                        summary = summarize_issue_text(row.get('issue', ''))
+                        expander_label = f"{row.get('id', 'N/A')} - {row.get('customer', 'Unknown')} {flag} – {summary}"
+                        prefix = f"case_{row.get('id', 'N/A')}"
+    
+                        # Safe field extraction
+                        severity = (row.get("severity") or "unknown").capitalize()
+                        urgency = (row.get("urgency") or "unknown").capitalize()
+                        criticality = (row.get("criticality") or "unknown").capitalize()
+                        category = (row.get("category") or "unknown").capitalize()
+                        sentiment = (row.get("sentiment") or "unknown").capitalize()
+                        escalated = (row.get("escalated") or "No").capitalize()
+    
+                        # Color mapping
+                        header_color = SEVERITY_COLORS.get(severity.lower(), "#7f8c8d")
+                        urgency_color = URGENCY_COLORS.get(urgency.lower(), "#7f8c8d")
+                        sentiment_color = {
+                            "Negative": "#e74c3c",
+                            "Positive": "#2ecc71",
+                            "Neutral": "#f39c12"
+                        }.get(sentiment, "#7f8c8d")
+                        escalated_color = "#c0392b" if escalated == "Yes" else "#7f8c8d"
+    
+                        # Ageing calculation
+                        try:
+                            timestamp = pd.to_datetime(row.get("timestamp"))
+                            now = datetime.datetime.now()
+                            ageing_timedelta = now - timestamp
+                            days = ageing_timedelta.days
+                            hours, remainder = divmod(ageing_timedelta.seconds, 3600)
+                            minutes, _ = divmod(remainder, 60)
+                            ageing_str = f"{days}d {hours}h {minutes}m"
+                            total_hours = ageing_timedelta.total_seconds() / 3600
+                            ageing_color = "#2ecc71" if total_hours < 12 else "#f39c12" if total_hours < 24 else "#e74c3c"
+                        except:
+                            ageing_str = "N/A"
+                            ageing_color = "#7f8c8d"
+    
+                        # Expander block
+                        with st.expander(f"📂 {expander_label}", expanded=False):
+                            if not compact_mode:
+                                colA, colB, colC, colD = st.columns([1, 2, 2, 1])
+                                with colB:
+                                    if st.button("✔️ Resolved", key=f"{prefix}_resolved"):
+                                        owner_email = row.get("owner_email", EMAIL_USER)
+                                        update_escalation_status(row['id'], "Resolved", row.get("action_taken", ""), row.get("owner", ""), owner_email)
+                                        send_alert("Case marked as resolved.", via="email", recipient=owner_email)
+                                        send_alert("Case marked as resolved.", via="teams", recipient=owner_email)
+                                with colA:
+                                    st.markdown(f"""
+                                    <div style='background-color:{ageing_color};padding:6px;border-radius:5px;color:white;text-align:center'>
+                                    Age: {ageing_str}
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                with colC:
+                                    n1_email = st.text_input("N+1 Email", key=f"{prefix}_n1email")
+                                with colD:
+                                    if st.button("🚀 To N+1", key=f"{prefix}_n1btn"):
+                                        update_escalation_status(row['id'], "Escalated", row.get("action_taken", ""), row.get("owner", ""), n1_email)
+                                        send_alert("Case escalated to N+1.", via="email", recipient=n1_email)
+                                        send_alert("Case escalated to N+1.", via="teams", recipient=n1_email)
+    
+                            # Metadata blocks
+                            row1_col1, row1_col2, row1_col3 = st.columns(3)
+                            with row1_col1:
+                                st.markdown("**📛 Severity**")
+                                st.markdown(f"""
+                                <div style='background-color:{header_color};padding:6px;border-radius:5px;color:white;text-align:center'>
+                                {severity}
+                                </div>
+                                """, unsafe_allow_html=True)
+                            with row1_col2:
+                                st.markdown("**⚡ Urgency**")
+                                st.markdown(f"""
+                                <div style='background-color:{urgency_color};padding:6px;border-radius:5px;color:white;text-align:center'>
+                                {urgency}
+                                </div>
+                                """, unsafe_allow_html=True)
+                            with row1_col3:
+                                st.markdown("**🎯 Criticality**")
+                                st.markdown(f"""
+                                <div style='background-color:#8e44ad;padding:6px;border-radius:5px;color:white;text-align:center'>
+                                {criticality}
+                                </div>
+                                """, unsafe_allow_html=True)
+    
+                            row2_col1, row2_col2, row2_col3 = st.columns(3)
+                            with row2_col1:
+                                st.markdown("**📂 Category**")
+                                st.markdown(f"""
+                                <div style='background-color:#16a085;padding:6px;border-radius:5px;color:white;text-align:center'>
+                                {category}
+                                </div>
+                                """, unsafe_allow_html=True)
+                            with row2_col2:
+                                st.markdown("**💬 Sentiment**")
+                                st.markdown(f"""
+                                <div style='background-color:{sentiment_color};padding:6px;border-radius:5px;color:white;text-align:center'>
+                                {sentiment}
+                                </div>
+                                """, unsafe_allow_html=True)
+                            with row2_col3:
+                                st.markdown("**📈 Escalated**")
+                                st.markdown(f"""
+                                <div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>
+                                {escalated}
+                                </div>
+                                """, unsafe_allow_html=True)
+    
+                            # Editable fields
+                            edit_row1_col1, edit_row1_col2 = st.columns(2)
+                            with edit_row1_col1:
+                                new_status = st.selectbox("Update Status", ["Open", "In Progress", "Resolved"],
+                                    index=["Open", "In Progress", "Resolved"].index(row.get("status", "Open")),
+                                    key=f"{prefix}_status")
+                            with edit_row1_col2:
+                                new_action = st.text_input("Action Taken", row.get("action_taken", ""), key=f"{prefix}_action")
+    
+                            edit_row2_col1, edit_row2_col2 = st.columns(2)
+                            with edit_row2_col1:
+                                new_owner = st.text_input("Owner", row.get("owner", ""), key=f"{prefix}_owner")
+                            with edit_row2_col2:
+                                new_owner_email = st.text_input("Owner Email", row.get("owner_email", ""), key=f"{prefix}_email")
+    
+                            if st.button("💾 Save Changes", key=f"{prefix}_save"):
+                                update_escalation_status(row['id'], new_status, new_action, new_owner, new_owner_email)
+                                st.success("Escalation updated.")
+                                notification_message = f"""
+                                🔔 Hello {new_owner},
+                                The escalation case #{row['id']} assigned to you has been updated:
+                                • Status: {new_status}
+                                • Action Taken: {new_action}
+                                • Category: {category}
+                                • Severity: {severity}
+                                • Urgency: {urgency}
+                                • Sentiment: {sentiment}
+                                Please review the updates on the EscalateAI dashboard.
+                                """
+                                send_alert(notification_message.strip(), via="email", recipient=new_owner_email)
+                                send_alert(notification_message.strip(), via="teams", recipient=new_owner_email)
+    
+                    except Exception as e:
+                        st.error(f"Error rendering case #{row.get('id', 'Unknown')}: {e}")               
+    
+    # --- Escalated issues tab ---
+    with tabs[1]:
+        st.subheader("🚩 Escalated Issues")
+        df = filtered_df
+        df_esc = df[df["escalated"] == "Yes"]
+        st.dataframe(df_esc)
+    
+    with tabs[2]:
+        st.subheader("🔁 Feedback & Retraining")
+        df = fetch_escalations()
+        df_feedback = df[df["escalated"].notnull()]
+        fb_map = {"Correct": 1, "Incorrect": 0}
+    
+        for _, row in df_feedback.iterrows():
+            with st.expander(f"🆔 {row['id']}"):
+                fb = st.selectbox("Escalation Accuracy", ["Correct", "Incorrect"], key=f"fb_{row['id']}")
+                sent = st.selectbox("Sentiment", ["Positive", "Neutral", "Negative"], key=f"sent_{row['id']}")
+                crit = st.selectbox("Criticality", ["Low", "Medium", "High", "Urgent"], key=f"crit_{row['id']}")
+                notes = st.text_area("Notes", key=f"note_{row['id']}")
+                if st.button("Submit", key=f"btn_{row['id']}"):
+                    owner_email = row.get("owner_email", EMAIL_USER)
+                    update_escalation_status(row['id'], "Resolved", row["action_taken"], row["owner"], owner_email)
+                    send_alert("Case marked as resolved.", via="email", recipient=owner_email)
+                    st.success("Feedback saved.")
+        
+        # Retrain model button
+        if st.button("🔁 Retrain Model"):
+            st.info("Retraining model with feedback (may take a few seconds)...")
+            model = train_model()
+            if model:
+                st.success("Model retrained successfully.")
+            else:
+                st.warning("Not enough data to retrain model.")
+    
+    
+    # ------------------------------
+    # --- BACKGROUND EMAIL THREAD ---
+    # ------------------------------
+    
+    if 'email_thread' not in st.session_state:
+        email_thread = threading.Thread(target=email_polling_job, daemon=True)
+        email_thread.start()
+        st.session_state['email_thread'] = email_thread
+    
+    # ------------------------------
+    # --- DAILY EMAIL ---
+    # ------------------------------
+    
+    import schedule
+    import threading
+    import time as time_module
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from email.mime.base import MIMEBase
+    from email import encoders
+    
+    # --- Daily Escalation Email Function ---
+    def send_daily_escalation_email():
+        df = fetch_escalations()
+        df_esc = df[df["escalated"] == "Yes"]
+    
+        if df_esc.empty:
+            print("✅ No escalated cases to report.")
+            return
+    
+        # Save to Excel
+        file_path = "daily_escalated_cases.xlsx"
+        df_esc.to_excel(file_path, index=False)
+    
+        # Summary
+        summary = f"""
+    🔔 Daily Escalation Summary – {datetime.datetime.now().strftime('%Y-%m-%d')}
+    
+    Total Escalated Cases: {len(df_esc)}
+    Open: {df_esc[df_esc['status'] == 'Open'].shape[0]}
+    In Progress: {df_esc[df_esc['status'] == 'In Progress'].shape[0]}
+    Resolved: {df_esc[df_esc['status'] == 'Resolved'].shape[0]}
+    
+    Please find the attached Excel file for full details.
+    """
+    
+        try:
+            msg = MIMEMultipart()
+            msg['Subject'] = "📊 Daily Escalated Cases Report"
             msg['From'] = EMAIL_USER
-            msg['To'] = recipient if recipient else EMAIL_USER  # fallback to sender
-            msg.set_content(message)
-
+            msg['To'] = ALERT_RECIPIENT
+            msg.attach(MIMEText(summary, 'plain'))
+    
+            # Attach Excel
+            with open(file_path, "rb") as f:
+                part = MIMEBase('application', 'octet-stream')
+                part.set_payload(f.read())
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', f'attachment; filename="{file_path}"')
+                msg.attach(part)
+    
             with smtplib.SMTP(EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT) as server:
                 server.starttls()
                 server.login(EMAIL_USER, EMAIL_PASS)
                 server.send_message(msg)
-            print(f"✅ Email alert sent to {msg['To']}")
-        except Exception as e:
-            print(f"❌ Email sending failed: {e}")
-
-    elif via == "teams":
-        try:
-            payload = {"text": message}
-            response = requests.post(MS_TEAMS_WEBHOOK_URL, json=payload)
-            if response.status_code == 200:
-                print("✅ Teams alert sent successfully")
-            else:
-                print(f"❌ Teams alert failed with status {response.status_code}: {response.text}")
-        except Exception as e:
-            print(f"❌ Teams sending failed: {e}")
-
-# 📤 Download Section
-st.sidebar.markdown("### 📤 Downloads")
-col1, col2 = st.sidebar.columns(2)
-with col1:
-    if st.button("⬇️ All Complaints"):
-        csv = fetch_escalations().to_csv(index=False)
-        st.download_button("Download CSV", csv, file_name="escalations.csv", mime="text/csv")
-with col2:
-    if st.button("⬇️ Escalated Only"):
-        df_esc = fetch_escalations()
-        df_esc = df_esc[df_esc["escalated"] == "Yes"]
-        if df_esc.empty:
-            st.info("No escalated cases.")
-        else:
-            with pd.ExcelWriter("escalated_cases.xlsx") as writer:
-                df_esc.to_excel(writer, index=False)
-            with open("escalated_cases.xlsx", "rb") as f:
-                st.download_button("Download Excel", f, file_name="escalated_cases.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-
-# --- Main Tabs ---
-tabs = st.tabs(["🗃️ All", "🚩 Escalated", "🔁 Feedback & Retraining", "📊 Analytics"])
-
-import datetime
-import time
-import pandas as pd
-import streamlit as st
-
-# Sidebar controls
-auto_refresh = st.sidebar.checkbox("🔄 Auto Refresh", value=False)
-refresh_interval = st.sidebar.slider("Refresh Interval (sec)", 10, 60, 30)
-compact_mode = st.sidebar.checkbox("📱 Compact Mode", value=False)
-if auto_refresh:
-    time.sleep(refresh_interval)
-    st.rerun()
-if st.sidebar.button("🔁 Manual Refresh"):
-   st.rerun()
-
-# Kanban board tab
-with tabs[0]:
-    st.subheader("📊 Escalation Kanban Board")
-    df = filtered_df.copy()
-    df["status"] = df["status"].str.strip().str.title()
-    counts = df['status'].value_counts()
-    st.markdown(f"**Open:** {counts.get('Open', 0)} | **In Progress:** {counts.get('In Progress', 0)} | **Resolved:** {counts.get('Resolved', 0)}")
-
-    col1, col2, col3 = st.columns(3)
-    status_columns = {
-        "Open": col1,
-        "In Progress": col2,
-        "Resolved": col3
-    }
-
-    for status, col in status_columns.items():
-        with col:
-            col.markdown(
-                f"<h3 style='background-color:{STATUS_COLORS[status]};color:white;padding:8px;border-radius:5px;text-align:center;'>{status}</h3>",
-                unsafe_allow_html=True
-            )
-            bucket = df[df["status"] == status]
-            for _, row in bucket.iterrows():
-                try:
-                    flag = "🚩" if row.get('escalated', '').lower() == 'yes' else ""
-                    summary = summarize_issue_text(row.get('issue', ''))
-                    expander_label = f"{row.get('id', 'N/A')} - {row.get('customer', 'Unknown')} {flag} – {summary}"
-                    prefix = f"case_{row.get('id', 'N/A')}"
-
-                    # Safe field extraction
-                    severity = (row.get("severity") or "unknown").capitalize()
-                    urgency = (row.get("urgency") or "unknown").capitalize()
-                    criticality = (row.get("criticality") or "unknown").capitalize()
-                    category = (row.get("category") or "unknown").capitalize()
-                    sentiment = (row.get("sentiment") or "unknown").capitalize()
-                    escalated = (row.get("escalated") or "No").capitalize()
-
-                    # Color mapping
-                    header_color = SEVERITY_COLORS.get(severity.lower(), "#7f8c8d")
-                    urgency_color = URGENCY_COLORS.get(urgency.lower(), "#7f8c8d")
-                    sentiment_color = {
-                        "Negative": "#e74c3c",
-                        "Positive": "#2ecc71",
-                        "Neutral": "#f39c12"
-                    }.get(sentiment, "#7f8c8d")
-                    escalated_color = "#c0392b" if escalated == "Yes" else "#7f8c8d"
-
-                    # Ageing calculation
-                    try:
-                        timestamp = pd.to_datetime(row.get("timestamp"))
-                        now = datetime.datetime.now()
-                        ageing_timedelta = now - timestamp
-                        days = ageing_timedelta.days
-                        hours, remainder = divmod(ageing_timedelta.seconds, 3600)
-                        minutes, _ = divmod(remainder, 60)
-                        ageing_str = f"{days}d {hours}h {minutes}m"
-                        total_hours = ageing_timedelta.total_seconds() / 3600
-                        ageing_color = "#2ecc71" if total_hours < 12 else "#f39c12" if total_hours < 24 else "#e74c3c"
-                    except:
-                        ageing_str = "N/A"
-                        ageing_color = "#7f8c8d"
-
-                    # Expander block
-                    with st.expander(f"📂 {expander_label}", expanded=False):
-                        if not compact_mode:
-                            colA, colB, colC, colD = st.columns([1, 2, 2, 1])
-                            with colB:
-                                if st.button("✔️ Resolved", key=f"{prefix}_resolved"):
-                                    owner_email = row.get("owner_email", EMAIL_USER)
-                                    update_escalation_status(row['id'], "Resolved", row.get("action_taken", ""), row.get("owner", ""), owner_email)
-                                    send_alert("Case marked as resolved.", via="email", recipient=owner_email)
-                                    send_alert("Case marked as resolved.", via="teams", recipient=owner_email)
-                            with colA:
-                                st.markdown(f"""
-                                <div style='background-color:{ageing_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                                Age: {ageing_str}
-                                </div>
-                                """, unsafe_allow_html=True)
-                            with colC:
-                                n1_email = st.text_input("N+1 Email", key=f"{prefix}_n1email")
-                            with colD:
-                                if st.button("🚀 To N+1", key=f"{prefix}_n1btn"):
-                                    update_escalation_status(row['id'], "Escalated", row.get("action_taken", ""), row.get("owner", ""), n1_email)
-                                    send_alert("Case escalated to N+1.", via="email", recipient=n1_email)
-                                    send_alert("Case escalated to N+1.", via="teams", recipient=n1_email)
-
-                        # Metadata blocks
-                        row1_col1, row1_col2, row1_col3 = st.columns(3)
-                        with row1_col1:
-                            st.markdown("**📛 Severity**")
-                            st.markdown(f"""
-                            <div style='background-color:{header_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                            {severity}
-                            </div>
-                            """, unsafe_allow_html=True)
-                        with row1_col2:
-                            st.markdown("**⚡ Urgency**")
-                            st.markdown(f"""
-                            <div style='background-color:{urgency_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                            {urgency}
-                            </div>
-                            """, unsafe_allow_html=True)
-                        with row1_col3:
-                            st.markdown("**🎯 Criticality**")
-                            st.markdown(f"""
-                            <div style='background-color:#8e44ad;padding:6px;border-radius:5px;color:white;text-align:center'>
-                            {criticality}
-                            </div>
-                            """, unsafe_allow_html=True)
-
-                        row2_col1, row2_col2, row2_col3 = st.columns(3)
-                        with row2_col1:
-                            st.markdown("**📂 Category**")
-                            st.markdown(f"""
-                            <div style='background-color:#16a085;padding:6px;border-radius:5px;color:white;text-align:center'>
-                            {category}
-                            </div>
-                            """, unsafe_allow_html=True)
-                        with row2_col2:
-                            st.markdown("**💬 Sentiment**")
-                            st.markdown(f"""
-                            <div style='background-color:{sentiment_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                            {sentiment}
-                            </div>
-                            """, unsafe_allow_html=True)
-                        with row2_col3:
-                            st.markdown("**📈 Escalated**")
-                            st.markdown(f"""
-                            <div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>
-                            {escalated}
-                            </div>
-                            """, unsafe_allow_html=True)
-
-                        # Editable fields
-                        edit_row1_col1, edit_row1_col2 = st.columns(2)
-                        with edit_row1_col1:
-                            new_status = st.selectbox("Update Status", ["Open", "In Progress", "Resolved"],
-                                index=["Open", "In Progress", "Resolved"].index(row.get("status", "Open")),
-                                key=f"{prefix}_status")
-                        with edit_row1_col2:
-                            new_action = st.text_input("Action Taken", row.get("action_taken", ""), key=f"{prefix}_action")
-
-                        edit_row2_col1, edit_row2_col2 = st.columns(2)
-                        with edit_row2_col1:
-                            new_owner = st.text_input("Owner", row.get("owner", ""), key=f"{prefix}_owner")
-                        with edit_row2_col2:
-                            new_owner_email = st.text_input("Owner Email", row.get("owner_email", ""), key=f"{prefix}_email")
-
-                        if st.button("💾 Save Changes", key=f"{prefix}_save"):
-                            update_escalation_status(row['id'], new_status, new_action, new_owner, new_owner_email)
-                            st.success("Escalation updated.")
-                            notification_message = f"""
-                            🔔 Hello {new_owner},
-                            The escalation case #{row['id']} assigned to you has been updated:
-                            • Status: {new_status}
-                            • Action Taken: {new_action}
-                            • Category: {category}
-                            • Severity: {severity}
-                            • Urgency: {urgency}
-                            • Sentiment: {sentiment}
-                            Please review the updates on the EscalateAI dashboard.
-                            """
-                            send_alert(notification_message.strip(), via="email", recipient=new_owner_email)
-                            send_alert(notification_message.strip(), via="teams", recipient=new_owner_email)
-
-                except Exception as e:
-                    st.error(f"Error rendering case #{row.get('id', 'Unknown')}: {e}")               
-
-# --- Escalated issues tab ---
-with tabs[1]:
-    st.subheader("🚩 Escalated Issues")
-    df = filtered_df
-    df_esc = df[df["escalated"] == "Yes"]
-    st.dataframe(df_esc)
-
-with tabs[2]:
-    st.subheader("🔁 Feedback & Retraining")
-    df = fetch_escalations()
-    df_feedback = df[df["escalated"].notnull()]
-    fb_map = {"Correct": 1, "Incorrect": 0}
-
-    for _, row in df_feedback.iterrows():
-        with st.expander(f"🆔 {row['id']}"):
-            fb = st.selectbox("Escalation Accuracy", ["Correct", "Incorrect"], key=f"fb_{row['id']}")
-            sent = st.selectbox("Sentiment", ["Positive", "Neutral", "Negative"], key=f"sent_{row['id']}")
-            crit = st.selectbox("Criticality", ["Low", "Medium", "High", "Urgent"], key=f"crit_{row['id']}")
-            notes = st.text_area("Notes", key=f"note_{row['id']}")
-            if st.button("Submit", key=f"btn_{row['id']}"):
-                owner_email = row.get("owner_email", EMAIL_USER)
-                update_escalation_status(row['id'], "Resolved", row["action_taken"], row["owner"], owner_email)
-                send_alert("Case marked as resolved.", via="email", recipient=owner_email)
-                st.success("Feedback saved.")
     
-    # Retrain model button
-    if st.button("🔁 Retrain Model"):
-        st.info("Retraining model with feedback (may take a few seconds)...")
+            print("✅ Daily escalation email sent.")
+        except Exception as e:
+            print(f"❌ Failed to send daily email: {e}")
+    
+    # --- Scheduler Setup ---
+    def schedule_daily_email():
+        schedule.every().day.at("09:00").do(send_daily_escalation_email)
+    
+        def run_scheduler():
+            while True:
+                schedule.run_pending()
+                time_module.sleep(60)
+    
+        thread = threading.Thread(target=run_scheduler, daemon=True)
+        thread.start()
+    
+    # --- Trigger Scheduler Once ---
+    if 'daily_email_thread' not in st.session_state:
+        schedule_daily_email()
+        st.session_state['daily_email_thread'] = True
+    
+    # --- Sidebar Button for Manual Trigger ---
+    st.sidebar.markdown("### 📧 Daily Escalation Email")
+    if st.sidebar.button("Send Daily Email"):
+        send_daily_escalation_email()
+        st.sidebar.success("✅ Daily escalation email sent.")
+    
+    # -----------------------
+    # --- DEV OPTIONS -------
+    # -----------------------
+    
+    if st.sidebar.checkbox("🧪 View Raw Database"):
+        df = fetch_escalations()
+        st.sidebar.dataframe(df)
+    
+    if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("DROP TABLE IF EXISTS escalations")
+        conn.commit()
+        conn.close()
+        st.sidebar.warning("Database reset. Please restart the app.")
+    
+    # -----------------------
+    # --- NOTES -------------
+    # -----------------------
+    # - Update .env file with correct credentials:
+    #   EMAIL_USER, EMAIL_PASS, EMAIL_SERVER, EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT, EMAIL_RECEIVER, MS_TEAMS_WEBHOOK_URL
+    # - Run app with Streamlit >=1.10 for best support
+    # - ML model is RandomForest; can be replaced or enhanced as needed
+    # - Background email polling fetches every 60 seconds automatically
+    # - Excel export fixed with context manager, no deprecated save()
+    # 🌙 Dark Mode
+    if st.sidebar.toggle("🌙 Dark Mode"):
+        apply_dark_mode()
+    
+    # AI Assistant Summary
+    st.sidebar.subheader("🧠 AI Assistant Summary")
+    st.sidebar.write(summarize_escalations())
+    
+    # 📌 Sticky Filter Summary
+    st.sidebar.markdown("### 🔍 Filters")
+    # (Then your selectboxes)
+    show_filter_summary(status, severity, sentiment, category)
+    
+    # 📄 PDF Report
+    if st.sidebar.button("📄 Generate PDF Report"):
+        generate_pdf_report()
+        st.sidebar.success("PDF report generated as report.pdf")
+    
+    with tabs[3]:
+        st.subheader("📊 Escalation Analytics Dashboard")
+        
+        # 📈 Analytics
+        render_analytics()
+        
+        # 🔥 SLA Heatmap with error handling
+        try:
+            render_sla_heatmap()
+        except Exception as e:
+            st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
+        
+        # 🧠 Feature Importance (optional)
         model = train_model()
         if model:
-            st.success("Model retrained successfully.")
-        else:
-            st.warning("Not enough data to retrain model.")
-
-
-# ------------------------------
-# --- BACKGROUND EMAIL THREAD ---
-# ------------------------------
-
-if 'email_thread' not in st.session_state:
-    email_thread = threading.Thread(target=email_polling_job, daemon=True)
-    email_thread.start()
-    st.session_state['email_thread'] = email_thread
-
-# ------------------------------
-# --- DAILY EMAIL ---
-# ------------------------------
-
-import schedule
-import threading
-import time as time_module
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
-
-# --- Daily Escalation Email Function ---
-def send_daily_escalation_email():
-    df = fetch_escalations()
-    df_esc = df[df["escalated"] == "Yes"]
-
-    if df_esc.empty:
-        print("✅ No escalated cases to report.")
-        return
-
-    # Save to Excel
-    file_path = "daily_escalated_cases.xlsx"
-    df_esc.to_excel(file_path, index=False)
-
-    # Summary
-    summary = f"""
-🔔 Daily Escalation Summary – {datetime.datetime.now().strftime('%Y-%m-%d')}
-
-Total Escalated Cases: {len(df_esc)}
-Open: {df_esc[df_esc['status'] == 'Open'].shape[0]}
-In Progress: {df_esc[df_esc['status'] == 'In Progress'].shape[0]}
-Resolved: {df_esc[df_esc['status'] == 'Resolved'].shape[0]}
-
-Please find the attached Excel file for full details.
-"""
-
-    try:
-        msg = MIMEMultipart()
-        msg['Subject'] = "📊 Daily Escalated Cases Report"
-        msg['From'] = EMAIL_USER
-        msg['To'] = ALERT_RECIPIENT
-        msg.attach(MIMEText(summary, 'plain'))
-
-        # Attach Excel
-        with open(file_path, "rb") as f:
-            part = MIMEBase('application', 'octet-stream')
-            part.set_payload(f.read())
-            encoders.encode_base64(part)
-            part.add_header('Content-Disposition', f'attachment; filename="{file_path}"')
-            msg.attach(part)
-
-        with smtplib.SMTP(EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT) as server:
-            server.starttls()
-            server.login(EMAIL_USER, EMAIL_PASS)
-            server.send_message(msg)
-
-        print("✅ Daily escalation email sent.")
-    except Exception as e:
-        print(f"❌ Failed to send daily email: {e}")
-
-# --- Scheduler Setup ---
-def schedule_daily_email():
-    schedule.every().day.at("09:00").do(send_daily_escalation_email)
-
-    def run_scheduler():
-        while True:
-            schedule.run_pending()
-            time_module.sleep(60)
-
-    thread = threading.Thread(target=run_scheduler, daemon=True)
-    thread.start()
-
-# --- Trigger Scheduler Once ---
-if 'daily_email_thread' not in st.session_state:
-    schedule_daily_email()
-    st.session_state['daily_email_thread'] = True
-
-# --- Sidebar Button for Manual Trigger ---
-st.sidebar.markdown("### 📧 Daily Escalation Email")
-if st.sidebar.button("Send Daily Email"):
-    send_daily_escalation_email()
-    st.sidebar.success("✅ Daily escalation email sent.")
-
-# -----------------------
-# --- DEV OPTIONS -------
-# -----------------------
-
-if st.sidebar.checkbox("🧪 View Raw Database"):
-    df = fetch_escalations()
-    st.sidebar.dataframe(df)
-
-if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("DROP TABLE IF EXISTS escalations")
-    conn.commit()
-    conn.close()
-    st.sidebar.warning("Database reset. Please restart the app.")
-
-# -----------------------
-# --- NOTES -------------
-# -----------------------
-# - Update .env file with correct credentials:
-#   EMAIL_USER, EMAIL_PASS, EMAIL_SERVER, EMAIL_SMTP_SERVER, EMAIL_SMTP_PORT, EMAIL_RECEIVER, MS_TEAMS_WEBHOOK_URL
-# - Run app with Streamlit >=1.10 for best support
-# - ML model is RandomForest; can be replaced or enhanced as needed
-# - Background email polling fetches every 60 seconds automatically
-# - Excel export fixed with context manager, no deprecated save()
-# 🌙 Dark Mode
-if st.sidebar.toggle("🌙 Dark Mode"):
-    apply_dark_mode()
-
-# AI Assistant Summary
-st.sidebar.subheader("🧠 AI Assistant Summary")
-st.sidebar.write(summarize_escalations())
-
-# 📌 Sticky Filter Summary
-st.sidebar.markdown("### 🔍 Filters")
-# (Then your selectboxes)
-show_filter_summary(status, severity, sentiment, category)
-
-# 📄 PDF Report
-if st.sidebar.button("📄 Generate PDF Report"):
-    generate_pdf_report()
-    st.sidebar.success("PDF report generated as report.pdf")
-
-with tabs[3]:
-    st.subheader("📊 Escalation Analytics Dashboard")
-    
-    # 📈 Analytics
-    render_analytics()
-    
-    # 🔥 SLA Heatmap with error handling
-    try:
-        render_sla_heatmap()
-    except Exception as e:
-        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
-    
-    # 🧠 Feature Importance (optional)
-    model = train_model()
-    if model:
-        show_feature_importance(model)
+            show_feature_importance(model)
 
 
 elif page == "🔥 SLA Heatmap":
