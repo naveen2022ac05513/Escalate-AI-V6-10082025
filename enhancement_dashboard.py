@@ -7,16 +7,26 @@ from advanced_enhancements import (
     fetch_escalations
 )
 
+import streamlit as st
+from advanced_enhancements import train_model
+
 def show_enhancement_dashboard():
-    st.title("🚀 Enhancement Dashboard")
+    st.title("📈 Enhancement Dashboard")
 
-    # Load escalation data
-    escalations = fetch_escalations()
+    try:
+        escalations = load_escalation_data()  # however you load it
+        model, X_test, y_test = train_model(escalations)
+        st.success("Model trained successfully.")
+        show_model_insights(model, X_test, y_test)
 
-    if escalations.empty:
-        st.warning("⚠️ No escalation data available.")
-        return
+    except KeyError as e:
+        st.error(f"🚫 Enhancement dashboard unavailable: {e}")
+        show_fallback_dashboard(escalations)
 
+    except Exception as e:
+        st.error(f"Unexpected error: {e}")
+        st.stop()
+        
     # Train model
     if st.button("Train Model"):
         model, X_test, y_test = train_model(escalations)
