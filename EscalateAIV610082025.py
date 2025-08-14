@@ -573,6 +573,27 @@ page = st.sidebar.radio("Go to", [
     "⚙️ Admin Tools"
 ])
 
+if page == "📊 Main Dashboard":
+    # ✅ Your main dashboard logic here
+
+elif page == "🔥 SLA Heatmap":
+    st.subheader("🔥 SLA Heatmap")
+    try:
+        render_sla_heatmap()
+    except Exception as e:
+        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
+
+elif page == "🧠 Enhancements":
+    show_enhancement_dashboard()
+
+elif page == "📈 Analytics":
+    from analytics_view import show_analytics
+    show_analytics()
+
+elif page == "⚙️ Admin Tools":
+    from admin_tools import show_admin_panel
+    show_admin_panel()
+
 # ✅ 3. Route to selected view
 if page == "📊 Main Dashboard":
     st.title("📊 Main Dashboard")
