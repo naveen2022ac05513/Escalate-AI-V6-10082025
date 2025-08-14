@@ -1,32 +1,45 @@
-# enhancement_dashboard.py
-
 import streamlit as st
-from enhancements import fetch_escalations, train_model
-from advanced_enhancements import generate_shap_plot, generate_pdf_report
+import pandas as pd
+from advanced_enhancements import (
+    train_model, 
+    generate_shap_plot, 
+    generate_pdf_report, 
+    fetch_escalations
+)
 
 def show_enhancement_dashboard():
-    st.title("🧠 Enhancement Dashboard")
+    st.title("🚀 Enhancement Dashboard")
 
-    st.markdown("Use this module to analyze escalations, generate SHAP plots, and download reports.")
-
-    # Load data
+    # Load escalation data
     escalations = fetch_escalations()
-    st.subheader("📋 Escalation Data")
-    st.dataframe(escalations)
 
-    # Model training
-    st.subheader("⚙️ Train Model")
-    if st.button("Train"):
+    if escalations.empty:
+        st.warning("⚠️ No escalation data available.")
+        return
+
+    # Train model
+    if st.button("Train Model"):
         model, X_test, y_test = train_model(escalations)
-        st.success("Model trained successfully.")
+        st.session_state.model = model
+        st.session_state.X_test = X_test
+        st.session_state.y_test = y_test
+        st.success("✅ Model trained successfully.")
 
-        # SHAP plot
-        st.subheader("📊 SHAP Plot")
-        shap_fig = generate_shap_plot(model, X_test)
-        st.pyplot(shap_fig)
+    # Show SHAP plot
+    if "model" in st.session_state and "X_test" in st.session_state:
+        st.subheader("🔍 SHAP Summary Plot")
+        generate_shap_plot(st.session_state.model, st.session_state.X_test)
+    else:
+        st.info("ℹ️ Train the model to view SHAP explanations.")
 
-        # PDF report
-        st.subheader("📄 Generate PDF Report")
-        if st.button("Download Report"):
-            pdf_bytes = generate_pdf_report(escalations)
-            st.download_button("📥 Download PDF", data=pdf_bytes, file_name="enhancement_report.pdf")
+    # Generate PDF report
+    if st.button("Generate PDF Report"):
+        generate_pdf_report()
+        st.success("📄 PDF report generated.")
+
+    # Optional: Add download button if needed
+    try:
+        with open("report.pdf", "rb") as f:
+            st.download_button("📥 Download Report", f, file_name="enhancement_report.pdf")
+    except FileNotFoundError:
+        st.info("ℹ️ No report available yet. Please generate one first.")
