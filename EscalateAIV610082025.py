@@ -979,7 +979,6 @@ elif page == "🧠 Enhancements":
 
 elif page == "📈 Analytics":
     try:
-        from analytics_view import show_analytics
         show_analytics()
     except Exception as e:
         st.info("Analytics view not available.")
