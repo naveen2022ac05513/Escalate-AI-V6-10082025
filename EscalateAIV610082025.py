@@ -962,6 +962,44 @@ Please find the attached Excel file for full details.
         except Exception as e:
             st.sidebar.error(f"PDF generation failed: {e}")
 
+# -------------------------------
+# 📈 Analytics View
+# -------------------------------
+def show_analytics_view():
+    import pandas as pd
+    import streamlit as st
+    from advanced_enhancements import fetch_escalations
+
+    st.title("📊 Escalation Analytics")
+
+    df = fetch_escalations()
+
+    if df.empty:
+        st.warning("⚠️ No escalation data available.")
+        return
+
+    # 📈 Trend Over Time
+    st.subheader("📈 Escalation Volume Over Time")
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+    trend = df.groupby(df['timestamp'].dt.date).size()
+    st.line_chart(trend)
+
+    # 🔥 Severity Distribution
+    st.subheader("🔥 Severity Distribution")
+    st.bar_chart(df['severity'].value_counts())
+
+    # 🧠 Sentiment Breakdown
+    st.subheader("🧠 Sentiment Breakdown")
+    st.bar_chart(df['sentiment'].value_counts())
+
+    # ⏳ Ageing Buckets
+    st.subheader("⏳ Ageing Buckets")
+    df['age_days'] = (pd.Timestamp.now() - df['timestamp']).dt.days
+    bins = [0, 3, 7, 14, 30, 90]
+    labels = ["0–3d", "4–7d", "8–14d", "15–30d", "31–90d"]
+    df['age_bucket'] = pd.cut(df['age_days'], bins=bins, labels=labels)
+    st.bar_chart(df['age_bucket'].value_counts().sort_index())
+
 elif page == "🔥 SLA Heatmap":
     st.subheader("🔥 SLA Heatmap")
     try:
