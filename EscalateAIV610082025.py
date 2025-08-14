@@ -1058,8 +1058,8 @@ with tabs[0]:
 
                 except Exception as e:
                     st.error(f"Error rendering case #{row.get('id', 'Unknown')}: {e}")               
-with tabs[3]:
-    st.subheader("📊 Escalation Analytics Dashboard")
+#with tabs[3]:
+ #   st.subheader("📊 Escalation Analytics Dashboard")
 
 elif page == "🔥 SLA Heatmap":
     st.subheader("🔥 SLA Heatmap")
