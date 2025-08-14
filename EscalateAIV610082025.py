@@ -295,6 +295,8 @@ def update_escalation_status(esc_id, status, action_taken, action_owner, owner_e
 # -------------------------------
 def show_admin_panel():
     import streamlit as st
+    import pandas as pd
+    import sqlite3
     from advanced_enhancements import (
         validate_escalation_schema,
         log_escalation_action,
@@ -303,22 +305,27 @@ def show_admin_panel():
 
     st.title("⚙️ Admin Tools")
 
-    # 🔍 Schema Validation
-    if st.button("🔧 Validate DB Schema"):
+    # 🔧 Schema Validation
+    if st.button("🔍 Validate DB Schema"):
         try:
             validate_escalation_schema()
             st.success("✅ Schema validated and healed.")
         except Exception as e:
             st.error(f"❌ Schema validation failed: {e}")
 
-    # 📄 View Audit Logs
+    # 📄 Audit Log Preview
     st.subheader("📄 Audit Log Preview")
+
     try:
-        import sqlite3
+        # Ensure audit_log table exists
+        log_escalation_action("init", "N/A", "system", "Initializing audit log table")
+
         conn = sqlite3.connect("escalations.db")
         df = pd.read_sql("SELECT * FROM audit_log ORDER BY timestamp DESC LIMIT 100", conn)
         conn.close()
+
         st.dataframe(df)
+
     except Exception as e:
         st.warning("⚠️ Audit log not available.")
         st.exception(e)
@@ -332,8 +339,11 @@ def show_admin_panel():
         details = st.text_area("Details")
         submitted = st.form_submit_button("Log Action")
         if submitted:
-            log_escalation_action(action, case_id, user, details)
-            st.success("✅ Action logged.")
+            try:
+                log_escalation_action(action, case_id, user, details)
+                st.success("✅ Action logged.")
+            except Exception as e:
+                st.error(f"❌ Failed to log action: {e}")
 
 # ============
 # Email Utils
