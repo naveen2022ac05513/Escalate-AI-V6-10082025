@@ -3,41 +3,18 @@ import numpy as np
 import re, os, datetime, sqlite3, requests
 import streamlit as st
 from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import classification_report
+from sklearn.model_selection import train_test_split
 import importlib.util
 from fpdf import FPDF
 import shap
-from xhtml2pdf import pisa  # For PDF generation
+from xhtml2pdf import pisa
 
 DB_PATH = "escalations.db"
 
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-
-def train_model(escalations):
-    if escalations.empty:
-        raise ValueError("Escalation data is empty.")
-
-    if 'is_escalation' not in escalations.columns:
-        raise KeyError("Missing 'is_escalation' column in escalation data.")
-
-    features = pd.get_dummies(escalations[['sentiment', 'urgency', 'severity', 'criticality']])
-    target = escalations['is_escalation'].astype(int)
-
-    if target.nunique() < 2:
-        raise ValueError("Insufficient label diversity for training.")
-
-    from sklearn.model_selection import train_test_split
-    from sklearn.ensemble import RandomForestClassifier
-
-    X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
-
-    return model, X_test, y_test
-    
 # 🔮 ETA Prediction
 def predict_resolution_eta(df):
     df = df.copy()
@@ -64,12 +41,8 @@ def show_shap_explanation(model, case_features):
     shap.initjs()
     shap.force_plot(explainer.expected_value[1], shap_values[1], X, matplotlib=True)
 
-# 🆕 Added missing function
+# 🆕 SHAP Summary Plot
 def generate_shap_plot(model=None, X_sample=None):
-    """
-    Generates a SHAP summary plot for model explanations.
-    If model or X_sample is missing, shows an info message instead.
-    """
     try:
         if model is None or X_sample is None or X_sample.empty:
             st.info("No SHAP plot generated — missing model or sample data.")
@@ -81,37 +54,34 @@ def generate_shap_plot(model=None, X_sample=None):
     except Exception as e:
         st.error(f"SHAP plot generation failed: {e}")
 
-# 🆕 Added missing function from enhancements v6.09
+# 🆕 PDF Report Generator
 def generate_pdf_report():
-    """
-    Generates a PDF report of all escalations from the DB.
-    """
     df = fetch_escalations()
     html = f"""
     <html>
     <head>
-        <style>
-            table {{
-                width: 100%;
-                border-collapse: collapse;
-            }}
-            th, td {{
-                border: 1px solid #ccc;
-                padding: 8px;
-                text-align: left;
-            }}
-            th {{
-                background-color: #f2f2f2;
-            }}
-            h2 {{
-                text-align: center;
-                color: #2c3e50;
-            }}
-        </style>
+    <style>
+    table {{
+        width: 100%;
+        border-collapse: collapse;
+    }}
+    th, td {{
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+    }}
+    th {{
+        background-color: #f2f2f2;
+    }}
+    h2 {{
+        text-align: center;
+        color: #2c3e50;
+    }}
+    </style>
     </head>
     <body>
-        <h2>📄 Escalation Report</h2>
-        {df.to_html(index=False)}
+    <h2>📄 Escalation Report</h2>
+    {df.to_html(index=False)}
     </body>
     </html>
     """
@@ -122,7 +92,7 @@ def generate_pdf_report():
     except Exception as e:
         st.error(f"❌ PDF generation failed: {e}")
 
-# 🧬 Duplicate Detection (Cosine)
+# 🧬 Duplicate Detection
 def detect_cosine_duplicates(df, threshold=0.85):
     issues = df['issue'].fillna("").tolist()
     vectorizer = TfidfVectorizer().fit_transform(issues)
@@ -211,7 +181,7 @@ def log_escalation_action(action_type, case_id, user, details):
     conn.commit()
     conn.close()
 
-# Helper to fetch data from DB
+# 🗃️ Fetch Escalation Data
 def fetch_escalations():
     conn = sqlite3.connect(DB_PATH)
     try:
@@ -221,3 +191,22 @@ def fetch_escalations():
     finally:
         conn.close()
     return df
+
+# 🧠 Model Trainer (NEW)
+def train_model(escalations: pd.DataFrame):
+    if 'is_escalation' not in escalations.columns:
+        raise KeyError("Missing 'is_escalation' column in escalation data.")
+
+    X = escalations.drop(columns=['is_escalation'])
+    y = escalations['is_escalation']
+
+    X = pd.get_dummies(X, drop_first=True)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    model = RandomForestClassifier(random_state=42)
+    model.fit(X_train, y_train)
+
+    return model, X_test, y_test
