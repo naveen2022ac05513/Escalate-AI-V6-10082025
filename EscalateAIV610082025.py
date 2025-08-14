@@ -290,6 +290,51 @@ def update_escalation_status(esc_id, status, action_taken, action_owner, owner_e
     except Exception:
         pass
 
+# -------------------------------
+# ⚙️ Admin Tools Panel
+# -------------------------------
+def show_admin_panel():
+    import streamlit as st
+    from advanced_enhancements import (
+        validate_escalation_schema,
+        log_escalation_action,
+        fetch_escalations
+    )
+
+    st.title("⚙️ Admin Tools")
+
+    # 🔍 Schema Validation
+    if st.button("🔧 Validate DB Schema"):
+        try:
+            validate_escalation_schema()
+            st.success("✅ Schema validated and healed.")
+        except Exception as e:
+            st.error(f"❌ Schema validation failed: {e}")
+
+    # 📄 View Audit Logs
+    st.subheader("📄 Audit Log Preview")
+    try:
+        import sqlite3
+        conn = sqlite3.connect("escalations.db")
+        df = pd.read_sql("SELECT * FROM audit_log ORDER BY timestamp DESC LIMIT 100", conn)
+        conn.close()
+        st.dataframe(df)
+    except Exception as e:
+        st.warning("⚠️ Audit log not available.")
+        st.exception(e)
+
+    # 📝 Manual Log Entry
+    st.subheader("📝 Manual Audit Entry")
+    with st.form("manual_log"):
+        action = st.text_input("Action Type")
+        case_id = st.text_input("Case ID")
+        user = st.text_input("User")
+        details = st.text_area("Details")
+        submitted = st.form_submit_button("Log Action")
+        if submitted:
+            log_escalation_action(action, case_id, user, details)
+            st.success("✅ Action logged.")
+
 # ============
 # Email Utils
 # ============
@@ -1025,7 +1070,6 @@ elif page == "📈 Analytics":
 
 elif page == "⚙️ Admin Tools":
     try:
-        from admin_tools import show_admin_panel
         show_admin_panel()
     except Exception as e:
         st.info("Admin tools not available.")
