@@ -9,6 +9,7 @@ from sklearn.metrics import classification_report
 import importlib.util
 from fpdf import FPDF
 import shap
+from xhtml2pdf import pisa  # For PDF generation
 
 DB_PATH = "escalations.db"
 
@@ -38,7 +39,7 @@ def show_shap_explanation(model, case_features):
     shap.initjs()
     shap.force_plot(explainer.expected_value[1], shap_values[1], X, matplotlib=True)
 
-# 🆕 Added to prevent ImportError
+# 🆕 Added missing function
 def generate_shap_plot(model=None, X_sample=None):
     """
     Generates a SHAP summary plot for model explanations.
@@ -54,6 +55,47 @@ def generate_shap_plot(model=None, X_sample=None):
         st.pyplot(shap.summary_plot(shap_values, X_sample))
     except Exception as e:
         st.error(f"SHAP plot generation failed: {e}")
+
+# 🆕 Added missing function from enhancements v6.09
+def generate_pdf_report():
+    """
+    Generates a PDF report of all escalations from the DB.
+    """
+    df = fetch_escalations()
+    html = f"""
+    <html>
+    <head>
+        <style>
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+            }}
+            th, td {{
+                border: 1px solid #ccc;
+                padding: 8px;
+                text-align: left;
+            }}
+            th {{
+                background-color: #f2f2f2;
+            }}
+            h2 {{
+                text-align: center;
+                color: #2c3e50;
+            }}
+        </style>
+    </head>
+    <body>
+        <h2>📄 Escalation Report</h2>
+        {df.to_html(index=False)}
+    </body>
+    </html>
+    """
+    try:
+        with open("report.pdf", "wb") as f:
+            pisa.CreatePDF(html, dest=f)
+        st.success("✅ PDF report generated successfully.")
+    except Exception as e:
+        st.error(f"❌ PDF generation failed: {e}")
 
 # 🧬 Duplicate Detection (Cosine)
 def detect_cosine_duplicates(df, threshold=0.85):
@@ -143,3 +185,14 @@ def log_escalation_action(action_type, case_id, user, details):
     ''', (datetime.datetime.now().isoformat(), action_type, case_id, user, details))
     conn.commit()
     conn.close()
+
+# Helper to fetch data from DB
+def fetch_escalations():
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        df = pd.read_sql("SELECT * FROM escalations", conn)
+    except Exception:
+        df = pd.DataFrame()
+    finally:
+        conn.close()
+    return df
