@@ -14,7 +14,9 @@ def show_enhancement_dashboard():
     st.title("📈 Enhancement Dashboard")
 
     try:
-        escalations = load_escalation_data()  # however you load it
+        from advanced_enhancements import fetch_escalations
+        escalations = fetch_escalations()
+        # escalations = load_escalation_data()  # however you load it
         model, X_test, y_test = train_model(escalations)
         st.success("Model trained successfully.")
         show_model_insights(model, X_test, y_test)
