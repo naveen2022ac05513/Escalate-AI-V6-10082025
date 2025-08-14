@@ -962,6 +962,21 @@ Please find the attached Excel file for full details.
         except Exception as e:
             st.sidebar.error(f"PDF generation failed: {e}")
 
+elif page == "🔥 SLA Heatmap":
+    st.subheader("🔥 SLA Heatmap")
+    try:
+        render_sla_heatmap()
+    except Exception as e:
+        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
+
+elif page == "🧠 Enhancements":
+    try:
+        from enhancement_dashboard import show_enhancement_dashboard
+        show_enhancement_dashboard()
+    except Exception as e:
+        st.info("Enhancement dashboard not available.")
+        st.exception(e)
+
 # -------------------------------
 # 📈 Analytics View
 # -------------------------------
@@ -999,21 +1014,6 @@ def show_analytics_view():
     labels = ["0–3d", "4–7d", "8–14d", "15–30d", "31–90d"]
     df['age_bucket'] = pd.cut(df['age_days'], bins=bins, labels=labels)
     st.bar_chart(df['age_bucket'].value_counts().sort_index())
-
-elif page == "🔥 SLA Heatmap":
-    st.subheader("🔥 SLA Heatmap")
-    try:
-        render_sla_heatmap()
-    except Exception as e:
-        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
-
-elif page == "🧠 Enhancements":
-    try:
-        from enhancement_dashboard import show_enhancement_dashboard
-        show_enhancement_dashboard()
-    except Exception as e:
-        st.info("Enhancement dashboard not available.")
-        st.exception(e)
 
 elif page == "📈 Analytics":
     try:
