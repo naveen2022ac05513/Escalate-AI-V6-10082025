@@ -38,6 +38,23 @@ def show_shap_explanation(model, case_features):
     shap.initjs()
     shap.force_plot(explainer.expected_value[1], shap_values[1], X, matplotlib=True)
 
+# 🆕 Added to prevent ImportError
+def generate_shap_plot(model=None, X_sample=None):
+    """
+    Generates a SHAP summary plot for model explanations.
+    If model or X_sample is missing, shows an info message instead.
+    """
+    try:
+        if model is None or X_sample is None or X_sample.empty:
+            st.info("No SHAP plot generated — missing model or sample data.")
+            return
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(X_sample)
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        st.pyplot(shap.summary_plot(shap_values, X_sample))
+    except Exception as e:
+        st.error(f"SHAP plot generation failed: {e}")
+
 # 🧬 Duplicate Detection (Cosine)
 def detect_cosine_duplicates(df, threshold=0.85):
     issues = df['issue'].fillna("").tolist()
