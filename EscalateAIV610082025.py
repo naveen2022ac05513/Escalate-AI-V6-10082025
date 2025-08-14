@@ -979,10 +979,11 @@ elif page == "🧠 Enhancements":
 
 elif page == "📈 Analytics":
     try:
-        show_analytics()
+        show_analytics_view()
     except Exception as e:
-        st.info("Analytics view not available.")
+        st.error("❌ Failed to load analytics view.")
         st.exception(e)
+
 
 elif page == "⚙️ Admin Tools":
     try:
