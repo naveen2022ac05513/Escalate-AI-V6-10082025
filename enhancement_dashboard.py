@@ -1,5 +1,11 @@
 import streamlit as st
-from advanced_enhancements import train_model, fetch_escalations
+import numpy as np
+from advanced_enhancements import (
+    train_model,
+    fetch_escalations,
+    generate_shap_plot,
+    render_model_metrics
+)
 
 def show_enhancement_dashboard():
     st.title("📈 Enhancement Dashboard")
@@ -11,9 +17,15 @@ def show_enhancement_dashboard():
         st.subheader("🔍 Raw Escalation Data")
         st.dataframe(escalations)
 
+    # 🧪 Inject synthetic 'is_escalation' column if missing (for testing)
+    if 'is_escalation' not in escalations.columns:
+        st.warning("⚠️ Simulating 'is_escalation' column for testing.")
+        escalations['is_escalation'] = np.random.choice([0, 1], size=len(escalations))
+
     try:
         model, X_test, y_test = train_model(escalations)
         st.success("✅ Model trained successfully.")
+
         show_model_insights(model, X_test, y_test)
 
     except KeyError as e:
@@ -31,9 +43,8 @@ def show_model_insights(model, X_test, y_test):
         accuracy = model.score(X_test, y_test)
         st.metric("Model Accuracy", f"{accuracy:.2%}")
 
-        if hasattr(model, "feature_importances_"):
-            importances = model.feature_importances_
-            st.bar_chart(importances)
+        generate_shap_plot(model, X_test)
+        render_model_metrics(model, X_test, y_test)
 
     except Exception as e:
         st.warning("⚠️ Unable to display model insights.")
