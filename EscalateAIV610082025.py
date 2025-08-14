@@ -576,22 +576,22 @@ if page == "📊 Main Dashboard":
 
     # Search bar
     def show_main_dashboard():
-    st.title("📋 Main Escalation Dashboard")
+        st.title("📋 Main Escalation Dashboard")
 
-    df = fetch_escalations()
-
-    # 🔍 Search Bar
-    query = st.text_input("🔎 Search escalations by keyword")
-
-    if query:
-        query_lower = query.lower()
-        df = df[df.apply(lambda row: row.astype(str).str.lower().str.contains(query_lower).any(), axis=1)]
-
-    if df.empty:
-        st.warning("No matching escalations found.")
-        return
-
-    st.dataframe(df)
+        df = fetch_escalations()
+    
+        # 🔍 Search Bar
+        query = st.text_input("🔎 Search escalations by keyword")
+    
+        if query:
+            query_lower = query.lower()
+            df = df[df.apply(lambda row: row.astype(str).str.lower().str.contains(query_lower).any(), axis=1)]
+    
+        if df.empty:
+            st.warning("No matching escalations found.")
+            return
+    
+        st.dataframe(df)
     
     # --------------------------
     # Sidebar: Upload & Analyze
