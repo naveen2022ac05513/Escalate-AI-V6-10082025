@@ -84,3 +84,20 @@ def show_analytics_view():
     labels = ["0–3d", "4–7d", "8–14d", "15–30d", "31–90d"]
     df['age_bucket'] = pd.cut(df['age_days'], bins=bins, labels=labels)
     st.bar_chart(df['age_bucket'].value_counts().sort_index())
+
+
+    # Fallback Dashboard
+def show_fallback_dashboard(escalations):
+    st.subheader("🔍 Fallback View: Diagnostics & Metadata")
+
+    if escalations.empty:
+        st.warning("No escalation data available.")
+        return
+
+    st.write("Available columns:", list(escalations.columns))
+    st.dataframe(escalations.head())
+
+    if 'created_at' in escalations.columns:
+        st.line_chart(escalations['created_at'].value_counts().sort_index())
+
+    st.info("Add 'is_escalation' column to enable model training.")
