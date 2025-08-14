@@ -1058,6 +1058,8 @@ with tabs[0]:
 
                 except Exception as e:
                     st.error(f"Error rendering case #{row.get('id', 'Unknown')}: {e}")               
+with tabs[3]:
+    st.subheader("📊 Escalation Analytics Dashboard")
 
 elif page == "🔥 SLA Heatmap":
     st.subheader("🔥 SLA Heatmap")
@@ -1231,8 +1233,9 @@ if st.sidebar.button("🗑️ Reset Database (Dev Only)"):
 # - ML model is RandomForest; can be replaced or enhanced as needed
 # - Background email polling fetches every 60 seconds automatically
 # - Excel export fixed with context manager, no deprecated save()
+
 # 🌙 Dark Mode
-if st.sidebar.toggle("🌙 Dark Mode"):
+if st.sidebar.checkbox("🌙 Dark Mode"):
     apply_dark_mode()
 
 # AI Assistant Summary
@@ -1249,20 +1252,4 @@ if st.sidebar.button("📄 Generate PDF Report"):
     generate_pdf_report()
     st.sidebar.success("PDF report generated as report.pdf")
 
-with tabs[3]:
-    st.subheader("📊 Escalation Analytics Dashboard")
-    
-    # 📈 Analytics
-    render_analytics()
-    
-    # 🔥 SLA Heatmap with error handling
-    try:
-        render_sla_heatmap()
-    except Exception as e:
-        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
-    
-    # 🧠 Feature Importance (optional)
-    model = train_model()
-    if model:
-        show_feature_importance(model)
 
