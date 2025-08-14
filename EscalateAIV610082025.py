@@ -573,30 +573,10 @@ page = st.sidebar.radio("Go to", [
     "⚙️ Admin Tools"
 ])
 
-if page == "📊 Main Dashboard":
-    # ✅ Your main dashboard logic here
-
-elif page == "🔥 SLA Heatmap":
-    st.subheader("🔥 SLA Heatmap")
-    try:
-        render_sla_heatmap()
-    except Exception as e:
-        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
-
-elif page == "🧠 Enhancements":
-    show_enhancement_dashboard()
-
-elif page == "📈 Analytics":
-    from analytics_view import show_analytics
-    show_analytics()
-
-elif page == "⚙️ Admin Tools":
-    from admin_tools import show_admin_panel
-    show_admin_panel()
-
 # ✅ 3. Route to selected view
 if page == "📊 Main Dashboard":
-    st.title("📊 Main Dashboard")
+    # ✅ Your main dashboard logic here
+   st.title("📊 Main Dashboard")
     # Your main dashboard logic here
 
 # Ensure DB schema exists before starting
@@ -1079,6 +1059,25 @@ with tabs[0]:
                 except Exception as e:
                     st.error(f"Error rendering case #{row.get('id', 'Unknown')}: {e}")               
 
+elif page == "🔥 SLA Heatmap":
+    st.subheader("🔥 SLA Heatmap")
+    try:
+        render_sla_heatmap()
+    except Exception as e:
+        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
+
+elif page == "🧠 Enhancements":
+    show_enhancement_dashboard()
+
+elif page == "📈 Analytics":
+    from analytics_view import show_analytics
+    show_analytics()
+
+elif page == "⚙️ Admin Tools":
+    from admin_tools import show_admin_panel
+    show_admin_panel()
+
+
 # --- Escalated issues tab ---
 with tabs[1]:
     st.subheader("🚩 Escalated Issues")
@@ -1267,22 +1266,3 @@ with tabs[3]:
     if model:
         show_feature_importance(model)
 
-
-elif page == "🔥 SLA Heatmap":
-    st.subheader("🔥 SLA Heatmap")
-    try:
-        render_sla_heatmap()
-    except Exception as e:
-        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
-    # Optional: show_heatmap() if needed
-
-elif page == "🧠 Enhancements":
-    show_enhancement_dashboard()
-
-elif page == "📈 Analytics":
-    from analytics_view import show_analytics
-    show_analytics()
-
-elif page == "⚙️ Admin Tools":
-    from admin_tools import show_admin_panel
-    show_admin_panel()
