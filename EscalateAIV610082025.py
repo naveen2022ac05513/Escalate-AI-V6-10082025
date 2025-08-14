@@ -552,9 +552,9 @@ st.markdown(
 st.sidebar.title("🔍 Navigation")
 page = st.sidebar.radio("Go to", [
     "📊 Main Dashboard",
+    "📈 Analytics",
     "🔥 SLA Heatmap",
     "🧠 Enhancements",
-    "📈 Analytics",
     "⚙️ Admin Tools"
 ])
 
