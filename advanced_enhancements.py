@@ -13,6 +13,32 @@ from xhtml2pdf import pisa  # For PDF generation
 
 DB_PATH = "escalations.db"
 
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+
+def train_model(escalations):
+    """
+    Trains a RandomForest model on escalation data.
+    Returns model, X_test, y_test for diagnostics.
+    """
+    if escalations.empty:
+        raise ValueError("Escalation data is empty.")
+
+    # Select features and target
+    features = pd.get_dummies(escalations[['sentiment', 'urgency', 'severity', 'criticality']])
+    target = escalations['is_escalation'].astype(int)
+
+    # Ensure label diversity
+    if target.nunique() < 2:
+        raise ValueError("Insufficient label diversity for training.")
+
+    X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
+
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+
+    return model, X_test, y_test
+
 # 🔮 ETA Prediction
 def predict_resolution_eta(df):
     df = df.copy()
