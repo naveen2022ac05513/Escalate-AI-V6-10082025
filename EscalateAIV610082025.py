@@ -1248,8 +1248,12 @@ with tabs[3]:
 
 
 elif page == "🔥 SLA Heatmap":
-    from heatmap_view import show_heatmap
-    show_heatmap()
+    st.subheader("🔥 SLA Heatmap")
+    try:
+        render_sla_heatmap()
+    except Exception as e:
+        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
+    # Optional: show_heatmap() if needed
 
 elif page == "🧠 Enhancements":
     show_enhancement_dashboard()
