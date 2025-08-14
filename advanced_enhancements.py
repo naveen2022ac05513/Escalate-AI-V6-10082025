@@ -48,7 +48,7 @@ def generate_shap_plot(model=None, X_sample=None):
             st.info("No SHAP plot generated — missing model or sample data.")
             return
         explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X_sample)
+        shap_values = shap.shap_values(X_sample)
         st.set_option('deprecation.showPyplotGlobalUse', False)
         st.pyplot(shap.summary_plot(shap_values, X_sample))
     except Exception as e:
