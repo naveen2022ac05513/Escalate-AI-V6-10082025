@@ -699,6 +699,13 @@ if page == "📊 Main Dashboard":
     elif view == "Not Likely":
         filtered_df = filtered_df[filtered_df["likely_to_escalate"].str.lower() != "yes"]
 
+    # Apply filter logic
+    if escalation_filter == "Likely to Escalate":
+        filtered_df = df[df["likely_to_escalate"] == "Yes"]
+    elif escalation_filter == "Not Likely":
+        filtered_df = df[df["likely_to_escalate"] == "No"]
+    else:
+        filtered_df = df.copy()
 
     # --------------------------
     # Sidebar: Manual Alerts
