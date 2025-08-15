@@ -215,8 +215,11 @@ def ensure_schema():
     for col in ["owner_email", "status_update_date", "user_feedback", "likely_to_escalate"]:
         try:
             cur.execute(f"SELECT {col} FROM escalations LIMIT 1")
-        except sqlite3.OperationalError:
-            cur.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
+        except (sqlite3.OperationalError, sqlite3.ProgrammingError):
+            try:
+                cur.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
+            except Exception as e:
+                print(f"❌ Failed to add column '{col}': {e}")
         conn.commit()
         conn.close()
 
