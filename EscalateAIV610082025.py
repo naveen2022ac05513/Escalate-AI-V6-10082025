@@ -777,7 +777,7 @@ if page == "📊 Main Dashboard":
                         criticality = (row.get("criticality") or "medium").capitalize()
                         category = (row.get("category") or "other").capitalize()
                         sentiment = (row.get("sentiment") or "neutral").capitalize()
-                        escalated = "Yes" if str(row.get("escalated", "No")).lower() == "yes" else "No"
+                        likely_to_escalate = "Yes" if str(row.get("likely_to_escalate", "No")).lower() == "yes" else "No"
 
                         # Color mapping
                         header_color = SEVERITY_COLORS.get(severity, "#7f8c8d")
@@ -787,7 +787,7 @@ if page == "📊 Main Dashboard":
                             "Positive": "#2ecc71",
                             "Neutral": "#f39c12"
                         }.get(sentiment, "#7f8c8d")
-                        escalated_color = "#c0392b" if escalated == "Yes" else "#7f8c8d"
+                        escalated_color = "#c0392b" if likely_to_escalate == "Yes" else "#7f8c8d"
 
                         # Ageing
                         try:
