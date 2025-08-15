@@ -506,11 +506,11 @@ def email_polling_job():
         emails = parse_emails()
         with processed_email_uids_lock:
             for e in emails:
-            issue = e["issue"]
-            customer = e["customer"]
-            sent, urg, sev, crit, cat, esc = analyze_issue(issue)
-            likely_to_escalate = predict_escalation(model, sent, urg, sev, crit)
-            insert_escalation(customer, issue, sent, urg, sev, crit, cat, esc, likely_to_escalate)
+                issue = e["issue"]
+                customer = e["customer"]
+                sent, urg, sev, crit, cat, esc = analyze_issue(issue)
+                likely_to_escalate = predict_escalation(model, sent, urg, sev, crit)
+                insert_escalation(customer, issue, sent, urg, sev, crit, cat, esc, likely_to_escalate)
         time.sleep(60)
 
 # ================
