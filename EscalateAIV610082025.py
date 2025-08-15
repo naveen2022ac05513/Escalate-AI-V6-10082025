@@ -160,17 +160,6 @@ URGENCY_COLORS = {
 # ==================
 # Helper / DB Utils
 # ==================
-
-# --- Risk Logic ---
-def fallback_escalation(severity, urgency, sentiment):
-    risk_severity = severity.lower() in ["critical", "high"]
-    risk_urgency = urgency.lower() in ["high", "immediate"]
-    risk_sentiment = sentiment.lower() in ["negative", "very negative"]
-
-    if risk_severity + risk_urgency + risk_sentiment >= 2:
-        return "Yes"
-    return "No"
-    
 def summarize_issue_text(issue_text: str) -> str:
     clean_text = re.sub(r'\s+', ' ', issue_text or "").strip()
     return clean_text[:120] + "..." if len(clean_text) > 120 else clean_text
@@ -195,63 +184,40 @@ def get_next_escalation_id() -> str:
 
     return f"{ESCALATION_PREFIX}{str(next_num).zfill(5)}"
 
-import traceback
-
 def ensure_schema():
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cur = conn.cursor()
-
-        # Create table if not exists
-        cur.execute('''
-            CREATE TABLE IF NOT EXISTS escalations (
-                id TEXT PRIMARY KEY,
-                customer TEXT,
-                issue TEXT,
-                sentiment TEXT,
-                urgency TEXT,
-                severity TEXT,
-                criticality TEXT,
-                category TEXT,
-                status TEXT,
-                timestamp TEXT,
-                action_taken TEXT,
-                owner TEXT,
-                owner_email TEXT,
-                escalated TEXT,
-                priority TEXT,
-                likely_to_escalate TEXT,
-                action_owner TEXT,
-                status_update_date TEXT,
-                user_feedback TEXT
-            )
-        ''')
-
-        # Ensure new columns exist
-        for col in ["owner_email", "status_update_date", "user_feedback", "likely_to_escalate"]:
-            try:
-                cur.execute(f"SELECT {col} FROM escalations LIMIT 1")
-            except (sqlite3.OperationalError, sqlite3.ProgrammingError):
-                try:
-                    cur.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
-                    print(f"✅ Added column: {col}")
-                except Exception as e:
-                    print(f"❌ Failed to add column '{col}': {e}")
-                    traceback.print_exc()
-
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS escalations (
+            id TEXT PRIMARY KEY,
+            customer TEXT,
+            issue TEXT,
+            sentiment TEXT,
+            urgency TEXT,
+            severity TEXT,
+            criticality TEXT,
+            category TEXT,
+            status TEXT,
+            timestamp TEXT,
+            action_taken TEXT,
+            owner TEXT,
+            owner_email TEXT,
+            escalated TEXT,
+            priority TEXT,
+            escalation_flag TEXT,
+            action_owner TEXT,
+            status_update_date TEXT,
+            user_feedback TEXT
+        )
+    ''')
+    # Ensure new columns exist
+    for col in ["owner_email", "status_update_date", "user_feedback"]:
         try:
-            conn.commit()
-            print("✅ Schema committed successfully.")
-        except Exception as e:
-            print("❌ Commit failed:")
-            traceback.print_exc()
-            conn.rollback()
-
-    except Exception as e:
-        print("❌ ensure_schema() failed:")
-        traceback.print_exc()
-    finally:
-        conn.close()
+            cur.execute(f"SELECT {col} FROM escalations LIMIT 1")
+        except sqlite3.OperationalError:
+            cur.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
+    conn.commit()
+    conn.close()
 
 def generate_issue_hash(issue_text: str) -> str:
     patterns_to_remove = [
@@ -266,18 +232,21 @@ def generate_issue_hash(issue_text: str) -> str:
     clean_text = re.sub(r'\s+', ' ', (issue_text or "").lower().strip())
     return hashlib.md5(clean_text.encode()).hexdigest()
 
-def insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag, likely_to_escalate="No", owner_email=""):
-    ...
+def insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag, owner_email=""):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    new_id = get_next_escalation_id()
+    now = datetime.datetime.now().isoformat()
     cur.execute('''
-    INSERT INTO escalations (
-        id, customer, issue, sentiment, urgency, severity, criticality, category,
-        status, timestamp, escalated, priority, escalation_flag,
-        action_taken, owner, action_owner, status_update_date, user_feedback, owner_email, likely_to_escalate
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO escalations (
+            id, customer, issue, sentiment, urgency, severity, criticality, category,
+            status, timestamp, escalated, priority, escalation_flag,
+            action_taken, owner, action_owner, status_update_date, user_feedback, owner_email
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         new_id, customer, issue, sentiment, urgency, severity, criticality, category,
         "Open", now, escalation_flag, "normal", escalation_flag,
-        "", "", "", "", "", owner_email, likely_to_escalate
+        "", "", "", "", "", owner_email
     ))
     conn.commit()
     conn.close()
@@ -470,11 +439,11 @@ def train_model():
     df = fetch_escalations()
     if df.shape[0] < 20:
         return None
-    df = df.dropna(subset=['sentiment', 'urgency', 'severity', 'criticality', 'likely_to_escalate'])
+    df = df.dropna(subset=['sentiment', 'urgency', 'severity', 'criticality', 'escalated'])
     if df.empty:
         return None
     X = pd.get_dummies(df[['sentiment', 'urgency', 'severity', 'criticality']])
-    y = df['likely_to_escalate'].apply(lambda x: 1 if str(x).strip().lower() == 'yes' else 0)
+    y = df['escalated'].apply(lambda x: 1 if str(x).strip().lower() == 'yes' else 0)
     if y.nunique() < 2:
         return None
     X_train, _, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -535,15 +504,13 @@ def send_alert(message: str, via: str = "email", recipient: str | None = None):
 def email_polling_job():
     """Poll emails every 60 seconds; analyze and insert."""
     while True:
-        model = train_model()
         emails = parse_emails()
         with processed_email_uids_lock:
             for e in emails:
                 issue = e["issue"]
                 customer = e["customer"]
                 sent, urg, sev, crit, cat, esc = analyze_issue(issue)
-                likely_to_escalate = predict_escalation(model, sent, urg, sev, crit)
-                insert_escalation(customer, issue, sent, urg, sev, crit, cat, esc, likely_to_escalate)
+                insert_escalation(customer, issue, sent, urg, sev, crit, cat, esc)
         time.sleep(60)
 
 # ================
@@ -607,73 +574,7 @@ if page == "📊 Main Dashboard":
             insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag)
         st.sidebar.success(f"✅ {len(emails)} emails processed")
 
-
-# 🔍 Sidebar: Escalation Filters
-st.sidebar.markdown("### 🔍 Escalation Filters")
-escalation_filter = st.sidebar.radio("Escalation View", ["All", "Likely to Escalate", "Not Likely"])
-
-# Load and preprocess data
-df_all = fetch_escalations()
-df_all["timestamp"] = pd.to_datetime(df_all["timestamp"], errors="coerce")
-
-# Apply fallback escalation logic
-def fallback_escalation(severity, urgency, sentiment):
-    risk_severity = severity.lower() in ["critical", "high"]
-    risk_urgency = urgency.lower() in ["high", "immediate"]
-    risk_sentiment = sentiment.lower() in ["negative", "very negative"]
-    return "Yes" if risk_severity + risk_urgency + risk_sentiment >= 2 else "No"
-
-df_all["likely_to_escalate"] = df_all.apply(
-    lambda row: fallback_escalation(
-        str(row.get("severity", "")),
-        str(row.get("urgency", "")),
-        str(row.get("sentiment", ""))
-    ),
-    axis=1
-)
-
-# Apply filter
-if escalation_filter == "Likely to Escalate":
-    filtered_df = df_all[df_all["likely_to_escalate"] == "Yes"]
-elif escalation_filter == "Not Likely":
-    filtered_df = df_all[df_all["likely_to_escalate"] == "No"]
-else:
-    filtered_df = df_all.copy()
-
-# ✅ Kanban Board Rendering
-st.subheader("📊 Escalation Kanban Board")
-filtered_df["status"] = filtered_df["status"].fillna("Open").str.strip().str.title()
-counts = filtered_df["status"].value_counts()
-st.markdown(f"**Open:** {counts.get('Open', 0)} | **In Progress:** {counts.get('In Progress', 0)} | **Resolved:** {counts.get('Resolved', 0)}")
-
-col1, col2, col3 = st.columns(3)
-status_columns = {"Open": col1, "In Progress": col2, "Resolved": col3}
-
-for status_name, col in status_columns.items():
-    with col:
-        col.markdown(
-            f"<h3 style='background-color:{STATUS_COLORS[status_name]};color:white;padding:8px;border-radius:5px;text-align:center;'>{status_name}</h3>",
-            unsafe_allow_html=True
-        )
-        bucket = filtered_df[filtered_df["status"] == status_name]
-        for _, row in bucket.iterrows():
-            try:
-                likely_to_escalate = row.get("likely_to_escalate", "No")
-                summary = summarize_issue_text(row.get("issue", ""))
-                expander_label = f"{row.get('id', 'N/A')} - {row.get('customer', 'Unknown')} 🚩 {summary}"
-
-                escalated_color = "#c0392b" if likely_to_escalate == "Yes" else "#7f8c8d"
-
-                with st.expander(f"📂 {expander_label}", expanded=False):
-                    st.markdown("**📈 Likely to Escalate**")
-                    st.markdown(
-                        f"<div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>{likely_to_escalate}</div>",
-                        unsafe_allow_html=True
-                    )
-                    # Add your metadata, buttons, and editable fields here
-            except Exception as e:
-                st.error(f"Error rendering case #{row.get('id', 'Unknown')}: {e}")
-
+  
     # --------------------------
     # Sidebar: Upload & Analyze
     # --------------------------
@@ -694,7 +595,6 @@ for status_name, col in status_columns.items():
             st.stop()
 
         if st.sidebar.button("🔍 Analyze & Insert"):
-            model = train_model()
             processed_count = 0
             for idx, row in df_excel.iterrows():
                 issue = str(row.get("Issue", "")).strip()
@@ -704,8 +604,7 @@ for status_name, col in status_columns.items():
                     continue
                 issue_summary = summarize_issue_text(issue)
                 sentiment, urgency, severity, criticality, category, escalation_flag = analyze_issue(issue)
-                likely_to_escalate = predict_escalation(model, sentiment, urgency, severity, criticality)
-                insert_escalation(customer, issue_summary, sentiment, urgency, severity, criticality, category, escalation_flag, likely_to_escalate)
+                insert_escalation(customer, issue_summary, sentiment, urgency, severity, criticality, category, escalation_flag)
                 processed_count += 1
             st.sidebar.success(f"🎯 {processed_count} rows processed successfully.")
 
@@ -730,7 +629,7 @@ for status_name, col in status_columns.items():
     # Sidebar: Filters
     # --------------------------
     st.sidebar.markdown("### 🔍 Escalation Filters")
-    view = st.sidebar.radio("Escalation View", ["All", "Likely to Escalate", "Not Likely"])
+    view = st.sidebar.radio("Escalation View", ["All", "Escalated", "Non-Escalated"])
 
     df_all = fetch_escalations()
     df_all['timestamp'] = pd.to_datetime(df_all['timestamp'], errors='coerce')
@@ -760,12 +659,11 @@ for status_name, col in status_columns.items():
         filtered_df = filtered_df[filtered_df["sentiment"].str.lower() == sentiment_opt.lower()]
     if category_opt != "All":
         filtered_df = filtered_df[filtered_df["category"].str.lower() == category_opt.lower()]
-    if view == "Likely to Escalate":
-        filtered_df = filtered_df[filtered_df["likely_to_escalate"].str.lower() == "yes"]
-    elif view == "Not Likely":
-        filtered_df = filtered_df[filtered_df["likely_to_escalate"].str.lower() != "yes"]
+    if view == "Escalated":
+        filtered_df = filtered_df[filtered_df["escalated"].str.lower() == "yes"]
+    elif view == "Non-Escalated":
+        filtered_df = filtered_df[filtered_df["escalated"].str.lower() != "yes"]
 
-        
     # --------------------------
     # Sidebar: Manual Alerts
     # --------------------------
@@ -846,7 +744,7 @@ for status_name, col in status_columns.items():
     # --------------------------
     # Main Tabs & Kanban Board
     # --------------------------
-    tabs = st.tabs(["🗃️ All", "🚩 Likely to Escalate", "🔁 Feedback & Retraining", "📊 Analytics"])
+    tabs = st.tabs(["🗃️ All", "🚩 Escalated", "🔁 Feedback & Retraining", "📊 Analytics"])
     with tabs[0]:
         
         st.subheader("📊 Escalation Kanban Board")
@@ -867,7 +765,7 @@ for status_name, col in status_columns.items():
                 bucket = df_view[df_view["status"] == status_name]
                 for _, row in bucket.iterrows():
                     try:
-                        flag = "🚩" if str(row.get('likely_to_escalate', '')).lower() == 'yes' else ""
+                        flag = "🚩" if str(row.get('escalated', '')).lower() == 'yes' else ""
                         summary = summarize_issue_text(row.get('issue', ''))
                         expander_label = f"{row.get('id', 'N/A')} - {row.get('customer', 'Unknown')} {flag} – {summary}"
                         prefix = f"case_{row.get('id', 'N/A')}"
@@ -878,12 +776,7 @@ for status_name, col in status_columns.items():
                         criticality = (row.get("criticality") or "medium").capitalize()
                         category = (row.get("category") or "other").capitalize()
                         sentiment = (row.get("sentiment") or "neutral").capitalize()
-                        likely_to_escalate = fallback_escalation(
-                            row.get("severity", ""),
-                            row.get("urgency", ""),
-                            row.get("sentiment", "")
-                        )
-
+                        escalated = "Yes" if str(row.get("escalated", "No")).lower() == "yes" else "No"
 
                         # Color mapping
                         header_color = SEVERITY_COLORS.get(severity, "#7f8c8d")
@@ -893,14 +786,8 @@ for status_name, col in status_columns.items():
                             "Positive": "#2ecc71",
                             "Neutral": "#f39c12"
                         }.get(sentiment, "#7f8c8d")
-                        escalated_color = "#c0392b" if likely_to_escalate == "Yes" else "#7f8c8d"
-                        #st.markdown("**📈 Likely to Escalate**")
-                        #st.markdown(
-                         #   f"<div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>{likely_to_escalate}</div>",
-                         #  unsafe_allow_html=True
-                        #)
+                        escalated_color = "#c0392b" if escalated == "Yes" else "#7f8c8d"
 
-                        
                         # Ageing
                         try:
                             ts = pd.to_datetime(row.get("timestamp"))
@@ -980,12 +867,11 @@ for status_name, col in status_columns.items():
                                     unsafe_allow_html=True
                                 )
                             with row2_col3:
-                                st.markdown("**📈 Likely to Escalate**")
+                                st.markdown("**📈 Escalated**")
                                 st.markdown(
-                                    f"<div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>{likely_to_escalate}</div>",
+                                    f"<div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>{escalated}</div>",
                                     unsafe_allow_html=True
                                 )
-
 
                             # Editable
                             edit_row1_col1, edit_row1_col2 = st.columns(2)
@@ -1036,7 +922,7 @@ Please review the updates on the EscalateAI dashboard.
         st.subheader("🔁 Feedback & Retraining")
         df_fb = fetch_escalations()
         if not df_fb.empty:
-            df_fb = df_fb[df_fb["likely_to_escalate"].notnull()]
+            df_fb = df_fb[df_fb["escalated"].notnull()]
             for _, row in df_fb.iterrows():
                 with st.expander(f"🆔 {row['id']}"):
                     fb = st.selectbox("Escalation Accuracy", ["Correct", "Incorrect"], key=f"fb_{row['id']}")
@@ -1085,14 +971,14 @@ Please review the updates on the EscalateAI dashboard.
     # --------------------------
     def send_daily_escalation_email():
         df = fetch_escalations()
-        df_esc = df[df["likely_to_escalate"].str.lower() == "yes"] if not df.empty else df
+        df_esc = df[df["escalated"].str.lower() == "yes"] if not df.empty else df
         if df_esc.empty:
             return
         file_path = "daily_escalated_cases.xlsx"
         df_esc.to_excel(file_path, index=False)
         summary = f"""
 🔔 Daily Escalation Summary – {datetime.datetime.now().strftime('%Y-%m-%d')}
-Total Likely to Escalate Cases: {len(df_esc)}
+Total Escalated Cases: {len(df_esc)}
 Open: {df_esc[df_esc['status'].str.strip().str.title() == 'Open'].shape[0]}
 In Progress: {df_esc[df_esc['status'].str.strip().str.title() == 'In Progress'].shape[0]}
 Resolved: {df_esc[df_esc['status'].str.strip().str.title() == 'Resolved'].shape[0]}
@@ -1171,32 +1057,32 @@ Please find the attached Excel file for full details.
         except Exception as e:
             st.sidebar.error(f"PDF generation failed: {e}")
 
-    elif page == "🔥 SLA Heatmap":
-        st.subheader("🔥 SLA Heatmap")
-        try:
-            render_sla_heatmap()
-        except Exception as e:
-            st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
-    
-    elif page == "🧠 Enhancements":
-        try:
-            from enhancement_dashboard import show_enhancement_dashboard
-            show_enhancement_dashboard()
-        except Exception as e:
-            st.info("Enhancement dashboard not available.")
-            st.exception(e)
-    
-    elif page == "📈 Analytics":
-        try:
-            show_analytics_view()
-        except Exception as e:
-            st.error("❌ Failed to load analytics view.")
-            st.exception(e)
-    
-    
-    elif page == "⚙️ Admin Tools":
-        try:
-            show_admin_panel()
-        except Exception as e:
-            st.info("Admin tools not available.")
-            st.exception(e)
+elif page == "🔥 SLA Heatmap":
+    st.subheader("🔥 SLA Heatmap")
+    try:
+        render_sla_heatmap()
+    except Exception as e:
+        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
+
+elif page == "🧠 Enhancements":
+    try:
+        from enhancement_dashboard import show_enhancement_dashboard
+        show_enhancement_dashboard()
+    except Exception as e:
+        st.info("Enhancement dashboard not available.")
+        st.exception(e)
+
+elif page == "📈 Analytics":
+    try:
+        show_analytics_view()
+    except Exception as e:
+        st.error("❌ Failed to load analytics view.")
+        st.exception(e)
+
+
+elif page == "⚙️ Admin Tools":
+    try:
+        show_admin_panel()
+    except Exception as e:
+        st.info("Admin tools not available.")
+        st.exception(e)
