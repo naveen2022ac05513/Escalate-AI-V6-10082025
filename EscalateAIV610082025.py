@@ -204,7 +204,7 @@ def ensure_schema():
             owner_email TEXT,
             escalated TEXT,
             priority TEXT,
-            escalation_flag TEXT,
+            likely_to_escalate TEXT,
             action_owner TEXT,
             status_update_date TEXT,
             user_feedback TEXT
@@ -439,11 +439,11 @@ def train_model():
     df = fetch_escalations()
     if df.shape[0] < 20:
         return None
-    df = df.dropna(subset=['sentiment', 'urgency', 'severity', 'criticality', 'escalated'])
+    df = df.dropna(subset=['sentiment', 'urgency', 'severity', 'criticality', 'likely_to_escalate'])
     if df.empty:
         return None
     X = pd.get_dummies(df[['sentiment', 'urgency', 'severity', 'criticality']])
-    y = df['escalated'].apply(lambda x: 1 if str(x).strip().lower() == 'yes' else 0)
+    y = df['likely_to_escalate'].apply(lambda x: 1 if str(x).strip().lower() == 'yes' else 0)
     if y.nunique() < 2:
         return None
     X_train, _, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -629,7 +629,7 @@ if page == "📊 Main Dashboard":
     # Sidebar: Filters
     # --------------------------
     st.sidebar.markdown("### 🔍 Escalation Filters")
-    view = st.sidebar.radio("Escalation View", ["All", "Escalated", "Non-Escalated"])
+    view = st.sidebar.radio("Escalation View", ["All", "Likely to Escalate", "Not Likely"])
 
     df_all = fetch_escalations()
     df_all['timestamp'] = pd.to_datetime(df_all['timestamp'], errors='coerce')
@@ -659,10 +659,11 @@ if page == "📊 Main Dashboard":
         filtered_df = filtered_df[filtered_df["sentiment"].str.lower() == sentiment_opt.lower()]
     if category_opt != "All":
         filtered_df = filtered_df[filtered_df["category"].str.lower() == category_opt.lower()]
-    if view == "Escalated":
-        filtered_df = filtered_df[filtered_df["escalated"].str.lower() == "yes"]
-    elif view == "Non-Escalated":
-        filtered_df = filtered_df[filtered_df["escalated"].str.lower() != "yes"]
+    if view == "Likely to Escalate":
+        filtered_df = filtered_df[filtered_df["likely_to_escalate"].str.lower() == "yes"]
+    elif view == "Not Likely":
+        filtered_df = filtered_df[filtered_df["likely_to_escalate"].str.lower() != "yes"]
+
 
     # --------------------------
     # Sidebar: Manual Alerts
@@ -765,7 +766,7 @@ if page == "📊 Main Dashboard":
                 bucket = df_view[df_view["status"] == status_name]
                 for _, row in bucket.iterrows():
                     try:
-                        flag = "🚩" if str(row.get('escalated', '')).lower() == 'yes' else ""
+                        flag = "🚩" if str(row.get('likely_to_escalate', '')).lower() == 'yes' else ""
                         summary = summarize_issue_text(row.get('issue', ''))
                         expander_label = f"{row.get('id', 'N/A')} - {row.get('customer', 'Unknown')} {flag} – {summary}"
                         prefix = f"case_{row.get('id', 'N/A')}"
@@ -867,11 +868,12 @@ if page == "📊 Main Dashboard":
                                     unsafe_allow_html=True
                                 )
                             with row2_col3:
-                                st.markdown("**📈 Escalated**")
+                                st.markdown("**📈 Likely to Escalate**")
                                 st.markdown(
-                                    f"<div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>{escalated}</div>",
+                                    f"<div style='background-color:{escalated_color};...'>{likely_to_escalate}</div>",
                                     unsafe_allow_html=True
                                 )
+
 
                             # Editable
                             edit_row1_col1, edit_row1_col2 = st.columns(2)
@@ -922,7 +924,7 @@ Please review the updates on the EscalateAI dashboard.
         st.subheader("🔁 Feedback & Retraining")
         df_fb = fetch_escalations()
         if not df_fb.empty:
-            df_fb = df_fb[df_fb["escalated"].notnull()]
+            df_fb = df_fb[df_fb["likely_to_escalate"].notnull()]
             for _, row in df_fb.iterrows():
                 with st.expander(f"🆔 {row['id']}"):
                     fb = st.selectbox("Escalation Accuracy", ["Correct", "Incorrect"], key=f"fb_{row['id']}")
@@ -971,14 +973,14 @@ Please review the updates on the EscalateAI dashboard.
     # --------------------------
     def send_daily_escalation_email():
         df = fetch_escalations()
-        df_esc = df[df["escalated"].str.lower() == "yes"] if not df.empty else df
+        df_esc = df[df["likely_to_escalate"].str.lower() == "yes"] if not df.empty else df
         if df_esc.empty:
             return
         file_path = "daily_escalated_cases.xlsx"
         df_esc.to_excel(file_path, index=False)
         summary = f"""
 🔔 Daily Escalation Summary – {datetime.datetime.now().strftime('%Y-%m-%d')}
-Total Escalated Cases: {len(df_esc)}
+Total Likely to Escalate Cases: {len(df_esc)}
 Open: {df_esc[df_esc['status'].str.strip().str.title() == 'Open'].shape[0]}
 In Progress: {df_esc[df_esc['status'].str.strip().str.title() == 'In Progress'].shape[0]}
 Resolved: {df_esc[df_esc['status'].str.strip().str.title() == 'Resolved'].shape[0]}
