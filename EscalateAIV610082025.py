@@ -184,43 +184,62 @@ def get_next_escalation_id() -> str:
 
     return f"{ESCALATION_PREFIX}{str(next_num).zfill(5)}"
 
+import traceback
+
 def ensure_schema():
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS escalations (
-            id TEXT PRIMARY KEY,
-            customer TEXT,
-            issue TEXT,
-            sentiment TEXT,
-            urgency TEXT,
-            severity TEXT,
-            criticality TEXT,
-            category TEXT,
-            status TEXT,
-            timestamp TEXT,
-            action_taken TEXT,
-            owner TEXT,
-            owner_email TEXT,
-            escalated TEXT,
-            priority TEXT,
-            likely_to_escalate TEXT,
-            action_owner TEXT,
-            status_update_date TEXT,
-            user_feedback TEXT
-        )
-    ''')
-    
-    # Ensure new columns exist
-    for col in ["owner_email", "status_update_date", "user_feedback", "likely_to_escalate"]:
-        try:
-            cur.execute(f"SELECT {col} FROM escalations LIMIT 1")
-        except (sqlite3.OperationalError, sqlite3.ProgrammingError):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+
+        # Create table if not exists
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS escalations (
+                id TEXT PRIMARY KEY,
+                customer TEXT,
+                issue TEXT,
+                sentiment TEXT,
+                urgency TEXT,
+                severity TEXT,
+                criticality TEXT,
+                category TEXT,
+                status TEXT,
+                timestamp TEXT,
+                action_taken TEXT,
+                owner TEXT,
+                owner_email TEXT,
+                escalated TEXT,
+                priority TEXT,
+                likely_to_escalate TEXT,
+                action_owner TEXT,
+                status_update_date TEXT,
+                user_feedback TEXT
+            )
+        ''')
+
+        # Ensure new columns exist
+        for col in ["owner_email", "status_update_date", "user_feedback", "likely_to_escalate"]:
             try:
-                cur.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
-            except Exception as e:
-                print(f"❌ Failed to add column '{col}': {e}")
-        conn.commit()
+                cur.execute(f"SELECT {col} FROM escalations LIMIT 1")
+            except (sqlite3.OperationalError, sqlite3.ProgrammingError):
+                try:
+                    cur.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
+                    print(f"✅ Added column: {col}")
+                except Exception as e:
+                    print(f"❌ Failed to add column '{col}': {e}")
+                    traceback.print_exc()
+
+        try:
+            conn.commit()
+            print("✅ Schema committed successfully.")
+        except Exception as e:
+            print("❌ Commit failed:")
+            traceback.print_exc()
+            conn.rollback()
+
+    except Exception as e:
+        print("❌ ensure_schema() failed:")
+        traceback.print_exc()
+    finally:
         conn.close()
 
 def generate_issue_hash(issue_text: str) -> str:
