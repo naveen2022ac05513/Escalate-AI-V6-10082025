@@ -210,14 +210,15 @@ def ensure_schema():
             user_feedback TEXT
         )
     ''')
+    
     # Ensure new columns exist
     for col in ["owner_email", "status_update_date", "user_feedback", "likely_to_escalate"]:
-    try:
-        cur.execute(f"SELECT {col} FROM escalations LIMIT 1")
-    except sqlite3.OperationalError:
-        cur.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
-    conn.commit()
-    conn.close()
+        try:
+            cur.execute(f"SELECT {col} FROM escalations LIMIT 1")
+        except sqlite3.OperationalError:
+            cur.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
+        conn.commit()
+        conn.close()
 
 def generate_issue_hash(issue_text: str) -> str:
     patterns_to_remove = [
