@@ -160,6 +160,17 @@ URGENCY_COLORS = {
 # ==================
 # Helper / DB Utils
 # ==================
+
+# --- Risk Logic ---
+def fallback_escalation(severity, urgency, sentiment):
+    risk_severity = severity.lower() in ["critical", "high"]
+    risk_urgency = urgency.lower() in ["high", "immediate"]
+    risk_sentiment = sentiment.lower() in ["negative", "very negative"]
+
+    if risk_severity + risk_urgency + risk_sentiment >= 2:
+        return "Yes"
+    return "No"
+    
 def summarize_issue_text(issue_text: str) -> str:
     clean_text = re.sub(r'\s+', ' ', issue_text or "").strip()
     return clean_text[:120] + "..." if len(clean_text) > 120 else clean_text
@@ -769,7 +780,7 @@ if page == "📊 Main Dashboard":
     # --------------------------
     # Main Tabs & Kanban Board
     # --------------------------
-    tabs = st.tabs(["🗃️ All", "🚩 Escalated", "🔁 Feedback & Retraining", "📊 Analytics"])
+    tabs = st.tabs(["🗃️ All", "🚩 Likely to Escalate", "🔁 Feedback & Retraining", "📊 Analytics"])
     with tabs[0]:
         
         st.subheader("📊 Escalation Kanban Board")
@@ -801,7 +812,12 @@ if page == "📊 Main Dashboard":
                         criticality = (row.get("criticality") or "medium").capitalize()
                         category = (row.get("category") or "other").capitalize()
                         sentiment = (row.get("sentiment") or "neutral").capitalize()
-                        likely_to_escalate = "Yes" if str(row.get("likely_to_escalate", "No")).lower() == "yes" else "No"
+                        likely_to_escalate = fallback_escalation(
+                            row.get("severity", ""),
+                            row.get("urgency", ""),
+                            row.get("sentiment", "")
+                        )
+
 
                         # Color mapping
                         header_color = SEVERITY_COLORS.get(severity, "#7f8c8d")
@@ -812,7 +828,13 @@ if page == "📊 Main Dashboard":
                             "Neutral": "#f39c12"
                         }.get(sentiment, "#7f8c8d")
                         escalated_color = "#c0392b" if likely_to_escalate == "Yes" else "#7f8c8d"
+                        st.markdown("**📈 Likely to Escalate**")
+                        st.markdown(
+                            f"<div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>{likely_to_escalate}</div>",
+                            unsafe_allow_html=True
+                        )
 
+                        
                         # Ageing
                         try:
                             ts = pd.to_datetime(row.get("timestamp"))
