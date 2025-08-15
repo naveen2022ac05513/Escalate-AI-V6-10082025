@@ -1,3 +1,7 @@
+
+
+# enhancements.py
+
 import pandas as pd
 import datetime
 import schedule
@@ -11,27 +15,24 @@ import matplotlib.pyplot as plt
 import sqlite3
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from xhtml2pdf import pisa
 
 DB_PATH = "escalations.db"
 
 # 🔄 Auto-Retraining Scheduler
 def schedule_weekly_retraining():
     schedule.every().sunday.at("09:00").do(train_model)
-
-def run_scheduler():
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
-
-threading.Thread(target=run_scheduler, daemon=True).start()
+    def run_scheduler():
+        while True:
+            schedule.run_pending()
+            time.sleep(60)
+    threading.Thread(target=run_scheduler, daemon=True).start()
 
 # 📊 Interactive Analytics Dashboard
 def render_analytics():
     df = fetch_escalations()
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    st.subheader("📊 Likely to Escalate Trends")
-    st.plotly_chart(px.histogram(df, x="timestamp", color="severity", title="Cases Over Time"))
+    st.subheader("📊 Escalation Trends")
+    st.plotly_chart(px.histogram(df, x="timestamp", color="severity", title="Escalations Over Time"))
     st.plotly_chart(px.pie(df, names="sentiment", title="Sentiment Distribution"))
 
 # 🧠 Explainable ML (Feature Importance)
@@ -48,34 +49,37 @@ def is_duplicate(issue_text, threshold=90):
             return True
     return False
 
-# 📄 PDF Generator
+# PDF Generator
+
+from xhtml2pdf import pisa
+
 def generate_pdf_report():
     df = fetch_escalations()
     html = f"""
     <html>
     <head>
-    <style>
-    table {{
-        width: 100%;
-        border-collapse: collapse;
-    }}
-    th, td {{
-        border: 1px solid #ccc;
-        padding: 8px;
-        text-align: left;
-    }}
-    th {{
-        background-color: #f2f2f2;
-    }}
-    h2 {{
-        text-align: center;
-        color: #2c3e50;
-    }}
-    </style>
+        <style>
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+            }}
+            th, td {{
+                border: 1px solid #ccc;
+                padding: 8px;
+                text-align: left;
+            }}
+            th {{
+                background-color: #f2f2f2;
+            }}
+            h2 {{
+                text-align: center;
+                color: #2c3e50;
+            }}
+        </style>
     </head>
     <body>
-    <h2>📄 Likely to Escalate Report</h2>
-    {df.to_html(index=False)}
+        <h2>📄 Escalation Report</h2>
+        {df.to_html(index=False)}
     </body>
     </html>
     """
@@ -128,11 +132,12 @@ def get_escalation_template(severity):
     return TEMPLATES.get(severity.lower(), "🔔 New escalation update.")
 
 # 🧠 AI Assistant Summary
+
 def summarize_escalations():
     df = fetch_escalations()
     total = len(df)
-    likely = df[df['likely_to_escalate'].str.lower() == 'yes'].shape[0]
-    return f"🔎 Summary: 📌Total cases: {total},🚨 Likely to Escalate: {likely}."
+    escalated = df[df['escalated'] == 'Yes'].shape[0]
+    return f"🔎 Summary: 📌Total cases: {total},🚨 Escalated: {escalated}."
 
 # 🔁 Local copy of fetch_escalations
 def fetch_escalations():
@@ -150,11 +155,11 @@ def train_model():
     df = fetch_escalations()
     if df.shape[0] < 20:
         return None
-    df = df.dropna(subset=['sentiment', 'urgency', 'severity', 'criticality', 'likely_to_escalate'])
+    df = df.dropna(subset=['sentiment', 'urgency', 'severity', 'criticality', 'escalated'])
     if df.empty:
         return None
     X = pd.get_dummies(df[['sentiment', 'urgency', 'severity', 'criticality']])
-    y = df['likely_to_escalate'].apply(lambda x: 1 if str(x).strip().lower() == 'yes' else 0)
+    y = df['escalated'].apply(lambda x: 1 if x == 'Yes' else 0)
     if y.nunique() < 2:
         return None
     X_train, _, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=42)
