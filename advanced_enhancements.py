@@ -3,11 +3,9 @@ import numpy as np
 import re, os, datetime, sqlite3, requests
 import streamlit as st
 from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split
 import importlib.util
 from fpdf import FPDF
 import shap
@@ -37,7 +35,7 @@ def show_shap_explanation(model, case_features):
     X = pd.get_dummies(pd.DataFrame([case_features]))
     X = X.reindex(columns=model.feature_names_in_, fill_value=0)
     shap_values = explainer.shap_values(X)
-    st.subheader("🔍 Escalation Explanation")
+    st.subheader("🔍 Likely to Escalate Explanation")
     shap.initjs()
     shap.force_plot(explainer.expected_value[1], shap_values[1], X, matplotlib=True)
 
@@ -47,18 +45,15 @@ def generate_shap_plot(model=None, X_sample=None):
         if model is None or X_sample is None or X_sample.empty:
             st.info("No SHAP plot generated — missing model or sample data.")
             return
-
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X_sample)
-
-        st.subheader("📊 SHAP Summary Plot")
-        shap.summary_plot(shap_values, X_sample, show=False)
-        st.pyplot()
-
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        st.markdown("### 🔎 SHAP Feature Impact on Likely to Escalate")
+        st.pyplot(shap.summary_plot(shap_values, X_sample))
     except Exception as e:
         st.error(f"SHAP plot generation failed: {e}")
 
-# 🆕 PDF Report Generator
+# 📄 PDF Report Generator
 def generate_pdf_report():
     df = fetch_escalations()
     html = f"""
@@ -84,7 +79,7 @@ def generate_pdf_report():
     </style>
     </head>
     <body>
-    <h2>📄 Escalation Report</h2>
+    <h2>📄 Likely to Escalate Report</h2>
     {df.to_html(index=False)}
     </body>
     </html>
@@ -95,6 +90,63 @@ def generate_pdf_report():
         st.success("✅ PDF report generated successfully.")
     except Exception as e:
         st.error(f"❌ PDF generation failed: {e}")
+
+# 📊 Text Summary PDF
+def generate_text_pdf(df):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Likely to Escalate Summary", ln=True)
+    pdf.cell(200, 10, txt=f"Generated: {datetime.datetime.now()}", ln=True)
+    for _, row in df.iterrows():
+        pdf.multi_cell(0, 10, txt=f"{row['id']}: {row['issue']}")
+    pdf.output("summary_report.pdf")
+
+# 📊 Model Metrics
+def render_model_metrics(model, X_test, y_test):
+    y_pred = model.predict(X_test)
+    report = classification_report(y_test, y_pred, output_dict=True)
+    st.markdown("### 📊 Model Performance on Likely to Escalate Prediction")
+    st.json(report)
+
+# 📝 Feedback Scoring
+def score_feedback_quality(notes):
+    if not notes:
+        return 0
+    score = len(notes.split()) / 10
+    return min(score, 1.0)
+
+# 🧪 Schema Validator
+def validate_escalation_schema():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    required_columns = ["owner_email", "status_update_date", "user_feedback", "likely_to_escalate"]
+    for col in required_columns:
+        try:
+            cursor.execute(f"SELECT {col} FROM escalations LIMIT 1")
+        except sqlite3.OperationalError:
+            cursor.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
+    conn.commit()
+    conn.close()
+
+# 🧾 Audit Logger
+def log_escalation_action(action_type, case_id, user, details):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS audit_log (
+        timestamp TEXT,
+        action_type TEXT,
+        case_id TEXT,
+        user TEXT,
+        details TEXT
+    )
+    ''')
+    cursor.execute('''
+    INSERT INTO audit_log VALUES (?, ?, ?, ?, ?)
+    ''', (datetime.datetime.now().isoformat(), action_type, case_id, user, details))
+    conn.commit()
+    conn.close()
 
 # 🧬 Duplicate Detection
 def detect_cosine_duplicates(df, threshold=0.85):
@@ -129,63 +181,7 @@ def send_whatsapp_message(phone, message):
     response = requests.post(url, json=payload, headers=headers)
     return response.status_code == 200
 
-# 📄 PDF Export (Text Summary)
-def generate_text_pdf(df):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="Escalation Summary", ln=True)
-    pdf.cell(200, 10, txt=f"Generated: {datetime.datetime.now()}", ln=True)
-    for _, row in df.iterrows():
-        pdf.multi_cell(0, 10, txt=f"{row['id']}: {row['issue']}")
-    pdf.output("summary_report.pdf")
-
-# 📊 Model Metrics
-def render_model_metrics(model, X_test, y_test):
-    y_pred = model.predict(X_test)
-    report = classification_report(y_test, y_pred, output_dict=True)
-    st.json(report)
-
-# 📝 Feedback Scoring
-def score_feedback_quality(notes):
-    if not notes:
-        return 0
-    score = len(notes.split()) / 10
-    return min(score, 1.0)
-
-# 🧪 Schema Validator
-def validate_escalation_schema():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    required_columns = ["owner_email", "status_update_date", "user_feedback"]
-    for col in required_columns:
-        try:
-            cursor.execute(f"SELECT {col} FROM escalations LIMIT 1")
-        except sqlite3.OperationalError:
-            cursor.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
-    conn.commit()
-    conn.close()
-
-# 🧾 Audit Logger
-def log_escalation_action(action_type, case_id, user, details):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS audit_log (
-            timestamp TEXT,
-            action_type TEXT,
-            case_id TEXT,
-            user TEXT,
-            details TEXT
-        )
-    ''')
-    cursor.execute('''
-        INSERT INTO audit_log VALUES (?, ?, ?, ?, ?)
-    ''', (datetime.datetime.now().isoformat(), action_type, case_id, user, details))
-    conn.commit()
-    conn.close()
-
-# 🗃️ Fetch Escalation Data
+# 📥 DB Fetch Helper
 def fetch_escalations():
     conn = sqlite3.connect(DB_PATH)
     try:
@@ -195,22 +191,3 @@ def fetch_escalations():
     finally:
         conn.close()
     return df
-
-# 🧠 Model Trainer (NEW)
-def train_model(escalations: pd.DataFrame):
-    if 'is_escalation' not in escalations.columns:
-        raise KeyError("Missing 'is_escalation' column in escalation data.")
-
-    X = escalations.drop(columns=['is_escalation'])
-    y = escalations['is_escalation']
-
-    X = pd.get_dummies(X, drop_first=True)
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
-
-    model = RandomForestClassifier(random_state=42)
-    model.fit(X_train, y_train)
-
-    return model, X_test, y_test
