@@ -827,7 +827,7 @@ if page == "📊 Main Dashboard":
                             "Positive": "#2ecc71",
                             "Neutral": "#f39c12"
                         }.get(sentiment, "#7f8c8d")
-                        #escalated_color = "#c0392b" if likely_to_escalate == "Yes" else "#7f8c8d"
+                        escalated_color = "#c0392b" if likely_to_escalate == "Yes" else "#7f8c8d"
                         #st.markdown("**📈 Likely to Escalate**")
                         #st.markdown(
                          #   f"<div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>{likely_to_escalate}</div>",
