@@ -501,13 +501,15 @@ def send_alert(message: str, via: str = "email", recipient: str | None = None):
 def email_polling_job():
     """Poll emails every 60 seconds; analyze and insert."""
     while True:
+        model = train_model()
         emails = parse_emails()
         with processed_email_uids_lock:
             for e in emails:
-                issue = e["issue"]
-                customer = e["customer"]
-                sent, urg, sev, crit, cat, esc = analyze_issue(issue)
-                insert_escalation(customer, issue, sent, urg, sev, crit, cat, esc)
+            issue = e["issue"]
+            customer = e["customer"]
+            sent, urg, sev, crit, cat, esc = analyze_issue(issue)
+            likely_to_escalate = predict_escalation(model, sent, urg, sev, crit)
+            insert_escalation(customer, issue, sent, urg, sev, crit, cat, esc, likely_to_escalate)
         time.sleep(60)
 
 # ================
@@ -592,6 +594,7 @@ if page == "📊 Main Dashboard":
             st.stop()
 
         if st.sidebar.button("🔍 Analyze & Insert"):
+            model = train_model()
             processed_count = 0
             for idx, row in df_excel.iterrows():
                 issue = str(row.get("Issue", "")).strip()
@@ -601,7 +604,8 @@ if page == "📊 Main Dashboard":
                     continue
                 issue_summary = summarize_issue_text(issue)
                 sentiment, urgency, severity, criticality, category, escalation_flag = analyze_issue(issue)
-                insert_escalation(customer, issue_summary, sentiment, urgency, severity, criticality, category, escalation_flag)
+                likely_to_escalate = predict_escalation(model, sentiment, urgency, severity, criticality)
+                insert_escalation(customer, issue_summary, sentiment, urgency, severity, criticality, category, escalation_flag, likely_to_escalate)
                 processed_count += 1
             st.sidebar.success(f"🎯 {processed_count} rows processed successfully.")
 
