@@ -916,7 +916,7 @@ if page == "📊 Main Dashboard":
                             with row2_col3:
                                 st.markdown("**📈 Likely to Escalate**")
                                 st.markdown(
-                                    f"<div style='background-color:{escalated_color};...'>{likely_to_escalate}</div>",
+                                    f"<div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>{likely_to_escalate}</div>",
                                     unsafe_allow_html=True
                                 )
 
