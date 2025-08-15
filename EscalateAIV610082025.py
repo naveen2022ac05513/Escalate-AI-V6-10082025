@@ -607,7 +607,73 @@ if page == "📊 Main Dashboard":
             insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag)
         st.sidebar.success(f"✅ {len(emails)} emails processed")
 
-  
+
+# 🔍 Sidebar: Escalation Filters
+st.sidebar.markdown("### 🔍 Escalation Filters")
+escalation_filter = st.sidebar.radio("Escalation View", ["All", "Likely to Escalate", "Not Likely"])
+
+# Load and preprocess data
+df_all = fetch_escalations()
+df_all["timestamp"] = pd.to_datetime(df_all["timestamp"], errors="coerce")
+
+# Apply fallback escalation logic
+def fallback_escalation(severity, urgency, sentiment):
+    risk_severity = severity.lower() in ["critical", "high"]
+    risk_urgency = urgency.lower() in ["high", "immediate"]
+    risk_sentiment = sentiment.lower() in ["negative", "very negative"]
+    return "Yes" if risk_severity + risk_urgency + risk_sentiment >= 2 else "No"
+
+df_all["likely_to_escalate"] = df_all.apply(
+    lambda row: fallback_escalation(
+        str(row.get("severity", "")),
+        str(row.get("urgency", "")),
+        str(row.get("sentiment", ""))
+    ),
+    axis=1
+)
+
+# Apply filter
+if escalation_filter == "Likely to Escalate":
+    filtered_df = df_all[df_all["likely_to_escalate"] == "Yes"]
+elif escalation_filter == "Not Likely":
+    filtered_df = df_all[df_all["likely_to_escalate"] == "No"]
+else:
+    filtered_df = df_all.copy()
+
+# ✅ Kanban Board Rendering
+st.subheader("📊 Escalation Kanban Board")
+filtered_df["status"] = filtered_df["status"].fillna("Open").str.strip().str.title()
+counts = filtered_df["status"].value_counts()
+st.markdown(f"**Open:** {counts.get('Open', 0)} | **In Progress:** {counts.get('In Progress', 0)} | **Resolved:** {counts.get('Resolved', 0)}")
+
+col1, col2, col3 = st.columns(3)
+status_columns = {"Open": col1, "In Progress": col2, "Resolved": col3}
+
+for status_name, col in status_columns.items():
+    with col:
+        col.markdown(
+            f"<h3 style='background-color:{STATUS_COLORS[status_name]};color:white;padding:8px;border-radius:5px;text-align:center;'>{status_name}</h3>",
+            unsafe_allow_html=True
+        )
+        bucket = filtered_df[filtered_df["status"] == status_name]
+        for _, row in bucket.iterrows():
+            try:
+                likely_to_escalate = row.get("likely_to_escalate", "No")
+                summary = summarize_issue_text(row.get("issue", ""))
+                expander_label = f"{row.get('id', 'N/A')} - {row.get('customer', 'Unknown')} 🚩 {summary}"
+
+                escalated_color = "#c0392b" if likely_to_escalate == "Yes" else "#7f8c8d"
+
+                with st.expander(f"📂 {expander_label}", expanded=False):
+                    st.markdown("**📈 Likely to Escalate**")
+                    st.markdown(
+                        f"<div style='background-color:{escalated_color};padding:6px;border-radius:5px;color:white;text-align:center'>{likely_to_escalate}</div>",
+                        unsafe_allow_html=True
+                    )
+                    # Add your metadata, buttons, and editable fields here
+            except Exception as e:
+                st.error(f"Error rendering case #{row.get('id', 'Unknown')}: {e}")
+
     # --------------------------
     # Sidebar: Upload & Analyze
     # --------------------------
