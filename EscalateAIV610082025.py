@@ -707,6 +707,9 @@ if page == "📊 Main Dashboard":
     else:
         filtered_df = df.copy()
 
+    for _, row in filtered_df.iterrows():
+    # render escalation card
+        
     # --------------------------
     # Sidebar: Manual Alerts
     # --------------------------
