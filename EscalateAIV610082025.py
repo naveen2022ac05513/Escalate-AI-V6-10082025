@@ -211,11 +211,11 @@ def ensure_schema():
         )
     ''')
     # Ensure new columns exist
-    for col in ["owner_email", "status_update_date", "user_feedback"]:
-        try:
-            cur.execute(f"SELECT {col} FROM escalations LIMIT 1")
-        except sqlite3.OperationalError:
-            cur.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
+    for col in ["owner_email", "status_update_date", "user_feedback", "likely_to_escalate"]:
+    try:
+        cur.execute(f"SELECT {col} FROM escalations LIMIT 1")
+    except sqlite3.OperationalError:
+        cur.execute(f"ALTER TABLE escalations ADD COLUMN {col} TEXT")
     conn.commit()
     conn.close()
 
@@ -232,21 +232,18 @@ def generate_issue_hash(issue_text: str) -> str:
     clean_text = re.sub(r'\s+', ' ', (issue_text or "").lower().strip())
     return hashlib.md5(clean_text.encode()).hexdigest()
 
-def insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag, owner_email=""):
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    new_id = get_next_escalation_id()
-    now = datetime.datetime.now().isoformat()
+def insert_escalation(customer, issue, sentiment, urgency, severity, criticality, category, escalation_flag, likely_to_escalate="No", owner_email=""):
+    ...
     cur.execute('''
-        INSERT INTO escalations (
-            id, customer, issue, sentiment, urgency, severity, criticality, category,
-            status, timestamp, escalated, priority, escalation_flag,
-            action_taken, owner, action_owner, status_update_date, user_feedback, owner_email
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO escalations (
+        id, customer, issue, sentiment, urgency, severity, criticality, category,
+        status, timestamp, escalated, priority, escalation_flag,
+        action_taken, owner, action_owner, status_update_date, user_feedback, owner_email, likely_to_escalate
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         new_id, customer, issue, sentiment, urgency, severity, criticality, category,
         "Open", now, escalation_flag, "normal", escalation_flag,
-        "", "", "", "", "", owner_email
+        "", "", "", "", "", owner_email, likely_to_escalate
     ))
     conn.commit()
     conn.close()
