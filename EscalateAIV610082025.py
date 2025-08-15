@@ -1171,32 +1171,32 @@ Please find the attached Excel file for full details.
         except Exception as e:
             st.sidebar.error(f"PDF generation failed: {e}")
 
-elif page == "🔥 SLA Heatmap":
-    st.subheader("🔥 SLA Heatmap")
-    try:
-        render_sla_heatmap()
-    except Exception as e:
-        st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
-
-elif page == "🧠 Enhancements":
-    try:
-        from enhancement_dashboard import show_enhancement_dashboard
-        show_enhancement_dashboard()
-    except Exception as e:
-        st.info("Enhancement dashboard not available.")
-        st.exception(e)
-
-elif page == "📈 Analytics":
-    try:
-        show_analytics_view()
-    except Exception as e:
-        st.error("❌ Failed to load analytics view.")
-        st.exception(e)
-
-
-elif page == "⚙️ Admin Tools":
-    try:
-        show_admin_panel()
-    except Exception as e:
-        st.info("Admin tools not available.")
-        st.exception(e)
+    elif page == "🔥 SLA Heatmap":
+        st.subheader("🔥 SLA Heatmap")
+        try:
+            render_sla_heatmap()
+        except Exception as e:
+            st.error(f"❌ SLA Heatmap failed to render: {type(e).__name__}: {str(e)}")
+    
+    elif page == "🧠 Enhancements":
+        try:
+            from enhancement_dashboard import show_enhancement_dashboard
+            show_enhancement_dashboard()
+        except Exception as e:
+            st.info("Enhancement dashboard not available.")
+            st.exception(e)
+    
+    elif page == "📈 Analytics":
+        try:
+            show_analytics_view()
+        except Exception as e:
+            st.error("❌ Failed to load analytics view.")
+            st.exception(e)
+    
+    
+    elif page == "⚙️ Admin Tools":
+        try:
+            show_admin_panel()
+        except Exception as e:
+            st.info("Admin tools not available.")
+            st.exception(e)
